@@ -28,10 +28,9 @@ def write_cylinders_to_file(file: Filename, number_of_cylinders: int) -> None:
     alphabet per line.
     """
 
-    f = open(file, 'w')
-    for _ in range(number_of_cylinders):
-        f.write(generate_cylinder() + '\n')
-    f.close()
+    with open(file, 'w') as f:
+        for _ in range(number_of_cylinders):
+            f.write(generate_cylinder() + '\n')
 
 
 def load_cylinders_from_file(file: Filename) -> Dict[int, Cylinder]:
@@ -39,14 +38,13 @@ def load_cylinders_from_file(file: Filename) -> Dict[int, Cylinder]:
     line as values and their line number as keys.
     """
 
-    f = open(file, 'r')
-    raw_cylinders = f.read()
-    f.close()
-    return {
-        i + 1: cylinder
-        for i, cylinder in enumerate(raw_cylinders.split('\n'))
-        if cylinder is not ''  # Exclude last empty line
-    }
+    with open(file, 'r') as f:
+        raw_cylinders = f.read()
+        return {
+            i + 1: cylinder
+            for i, cylinder in enumerate(raw_cylinders.split('\n'))
+            if cylinder is not ''  # Exclude last empty line
+        }
 
 
 def is_key_valid(key: Key, n: int) -> bool:
