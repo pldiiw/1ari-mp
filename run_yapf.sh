@@ -20,5 +20,4 @@ if [ $choice = "y" -o $choice = "Y" ]; then
   fi
 else
   echo -e "${RED}Aborting${RESET}..."
-  exit 0
 fi
