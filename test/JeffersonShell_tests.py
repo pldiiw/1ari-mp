@@ -1,12 +1,13 @@
 import unittest
-from JeffersonShell import (sanitize_message, generate_cylinder,
-    write_cylinders_to_file, load_cylinders_from_file, is_key_valid,
-    generate_key)
 from random import seed
 from string import ascii_uppercase
 
-class JeffersonShellTests(unittest.TestCase):
+from JeffersonShell import (generate_cylinder, generate_key, is_key_valid,
+                            load_cylinders_from_file, sanitize_message,
+                            write_cylinders_to_file)
 
+
+class JeffersonShellTests(unittest.TestCase):
     def test_sanitize_message(self):
         one = "Welcome"
         one_should = "Welcome"
@@ -58,16 +59,21 @@ class JeffersonShellTests(unittest.TestCase):
 
         two = [2, 5, 4, 3]
         self.assertFalse(is_key_valid(two, 5))
+
     def test_generate_key(self):
         seed(2)
         one = generate_key(20)
-        one_should = [2, 3, 19, 12, 6, 17, 13, 11, 5, 15, 10, 4, 1, 14, 16, 20, 9, 18, 7, 8]
+        one_should = [
+            2, 3, 19, 12, 6, 17, 13, 11, 5, 15, 10, 4, 1, 14, 16, 20, 9, 18, 7,
+            8
+        ]
         self.assertEqual(one, one_should)
 
         seed(13)
         two = generate_key(10)
         two_should = [5, 10, 3, 6, 2, 7, 9, 8, 1, 4]
         self.assertEqual(two, two_should)
+
 
 if __name__ == "__main__":
     unittest.main()
