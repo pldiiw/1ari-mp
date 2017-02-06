@@ -1,87 +1,56 @@
-import string
-import random
+from random import sample
+from string import ascii_letters, ascii_uppercase
+from typing import Dict, List
 
+# Type aliases
+Filename = str
+Cylinder = str
+Key = List[int]
 
-def convertLetters(text: str):
+def sanitize_message(message: str) -> str:
+    """Given a message, will discard all characters not being alphabetic."""
+
+    return ''.join(filter(lambda character: character in ascii_letters, s))
+
+def generate_cylinder() -> Cylinder:
+    """Return all letters of the alphabet uppercase in a random order as a
+    string, i.e. a cylinder.
     """
-    Delete all spaces ponctuation and special characters of the string in parameters and return it
-    :param text: string that could contain ponctuation space and special charachteres
-    :return: return a string without ponctuation, space, and special charactere
+
+    return ''.join(sample(ascii_uppercase, 26))
+
+def write_cylinders_to_file(file: Filename, number_of_cylinders: int) -> None:
+    """Write to file a given number of shuffled alphabets (cylinders), with one
+    alphabet per line.
     """
-    string_to_return = ""
-    alphabet = string.ascii_lowercase
-    for letter in text.lower():
-        if letter in alphabet:
-            string_to_return += letter
-    return string_to_return
 
+    f = open(file, 'w')
+    for _ in range(number_of_cylinders):
+        f.write(generate_cylinder() + '\n')
+    f.close()
 
-def mix():
+def load_cylinders_from_file(file: Filename) -> Dict[int, Cylinder]:
+    """Read file line by line and return a dict composed of the content of each
+    line as values and their line number as keys.
     """
-    :return: string with all letter of alphabet in random order
+
+    f = open(file, 'r')
+    raw_cylinders = f.read()
+    f.close()
+    return {
+        i+1: cylinder
+        for i, cylinder in enumerate(raw_cylinders.split('\n'))
+        if cylinder is not '' # Exclude last empty line
+    }
+
+def is_key_valid(key: Key, n: int) -> bool:
+    """Check if key is valid, i.e. key is a permutation of all numbers from 1
+    to the number of cylinders (included) wanted.
     """
-    alphabet = list(string.ascii_uppercase)
-    string_to_return = ""
-    for i in range(26):
-        nb_random = random.randint(0,len(alphabet)-1)
-        string_to_return += alphabet.pop(nb_random)
-    return string_to_return
 
+    return sorted(key) == list(range(1, n+1))
 
-def createCylinder(file: str, n: int):
-    """
-    Crete a file with n lines where which line contain a alphabet in random order
-    :param file: a string which contain the name of the file where the data will be store
-    :param n: a positive integer which represent number of line store in the file
-    """
-    with open(file, 'w') as myfile:
-        for i in range(n):
-            myfile.write(mix()+"\n")
+def generate_key(n: int) -> Key:
+    """Return a permutation of all number from 1 to n (included)."""
 
-
-def loadCylender(file: str):
-    """
-    Load the file with the name place in parameters and return a dict with all line
-    :param file: a string which is a file name
-    :return: a dict with all lines of the file
-    """
-    key = {}
-    try:
-        with open(file, 'r') as myfile:
-            for nb, line in enumerate(myfile):
-                key[nb+1] = line[:-1]
-    except:
-        pass
-    return key
-
-
-def keyOK(key: list, n: int):
-    """
-    Check if the key is a permutation of all integers between 1 and n
-    :param key: a list of integers
-    :param n: an integer
-    :return: True if the key is ok else False
-    """
-    list_to_compare = [i+1 for i in range(n)]
-    if len(key) == len(list_to_compare) and set(list_to_compare) == set(key):
-        return True
-    return False
-
-
-def createkey(n: int):
-    """
-    create a key
-    :param n: a integer
-    :return: a list of all number between 1 and n
-    """
-    number_list = [i for i in range(1, n+1)]
-    new_key = []
-    time_to_do = len(number_list)
-    for i in range(time_to_do):
-        nb_random = random.randint(0, len(number_list) - 1)
-        new_key.append(number_list.pop(nb_random))
-    return new_key
-
-
-if __name__ == '__main__':
-    pass
+    return sample(list(range(1, n+1)), n)
