@@ -70,7 +70,7 @@ def find(letter: str, cylinder: Cylinder) -> int:
     for i, v in enumerate(cylinder):
         if occurs_at is -1 and v == letter:
             occurs_at = i
-            break;
+            break
     return occurs_at
 
 
@@ -84,4 +84,3 @@ def jefferson_shift(n: int) -> int:
     """Shift n of 6 modulo 26. Partial application of shift."""
 
     return shift(n, 6, 26)
-
