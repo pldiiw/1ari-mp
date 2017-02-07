@@ -59,3 +59,29 @@ def generate_key(n: int) -> Key:
     """Return a permutation of all number from 1 to n (included)."""
 
     return sample(list(range(1, n + 1)), n)
+
+
+def find(letter: str, cylinder: Cylinder) -> int:
+    """Return the index of the first occurence of letter in cylinder. It
+    returns -1 if there is no occurence of letter.
+    """
+
+    occurs_at = -1
+    for i, v in enumerate(cylinder):
+        if occurs_at is -1 and v == letter:
+            occurs_at = i
+            break;
+    return occurs_at
+
+
+def shift(n: int, add: int, mod: int) -> int:
+    """Shift n of add modulo mod."""
+
+    return (n + add) % mod
+
+
+def jefferson_shift(n: int) -> int:
+    """Shift n of 6 modulo 26. Partial application of shift."""
+
+    return shift(n, 6, 26)
+
