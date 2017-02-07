@@ -2,9 +2,9 @@ import unittest
 from random import seed
 from string import ascii_uppercase
 
-from JeffersonShell import (generate_cylinder, generate_key, is_key_valid,
-                            load_cylinders_from_file, sanitize_message,
-                            write_cylinders_to_file)
+from JeffersonShell import (
+    generate_cylinder, generate_key, is_key_valid, load_cylinders_from_file,
+    sanitize_message, write_cylinders_to_file, find, shift, jefferson_shift)
 
 
 class JeffersonShellTests(unittest.TestCase):
@@ -73,6 +73,37 @@ class JeffersonShellTests(unittest.TestCase):
         two = generate_key(10)
         two_should = [5, 10, 3, 6, 2, 7, 9, 8, 1, 4]
         self.assertEqual(two, two_should)
+
+    def test_find(self):
+        one = find("l", "hello")
+        one_should = 2
+        self.assertEqual(one, one_should)
+
+        two = find("x", "The fox jumped over the wall.")
+        two_should = 6
+        self.assertEqual(two, two_should)
+
+    def test_shift(self):
+        one = shift(12, 20, 5)
+        one_should = 2
+        self.assertEqual(one, one_should)
+
+        two = shift(2, 42, 3)
+        two_should = 2
+        self.assertEqual(two, two_should)
+
+    def test_jefferson_shift(self):
+        one = jefferson_shift(4)
+        one_should = 10
+        self.assertEqual(one, one_should)
+
+        two = jefferson_shift(25)
+        two_should = 5
+        self.assertEqual(two, two_should)
+
+        three = jefferson_shift(43239)
+        three_should = 7
+        self.assertEqual(three, three_should)
 
 
 if __name__ == "__main__":
