@@ -1,4 +1,5 @@
 import unittest
+from os import remove
 from random import seed
 from string import ascii_uppercase
 
@@ -52,6 +53,7 @@ class JeffersonShellTests(unittest.TestCase):
             5: generate_cylinder()
         }
         self.assertEqual(load_cylinders_from_file(file), should)
+        remove(file)
 
     def is_key_valid(self):
         one = [2, 4, 1, 8, 3, 5, 7, 6]
