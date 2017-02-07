@@ -5,7 +5,9 @@ from typing import Dict, List
 # Type aliases
 Filename = str
 Cylinder = str
+Cylinders = Dict[int, Cylinder]
 Key = List[int]
+Letter = str
 
 
 def sanitize_message(message: str) -> str:
@@ -33,7 +35,7 @@ def write_cylinders_to_file(file: Filename, number_of_cylinders: int) -> None:
             f.write(generate_cylinder() + '\n')
 
 
-def load_cylinders_from_file(file: Filename) -> Dict[int, Cylinder]:
+def load_cylinders_from_file(file: Filename) -> Cylinders:
     """Read file line by line and return a dict composed of the content of each
     line as values and their line number as keys.
     """
@@ -61,7 +63,7 @@ def generate_key(n: int) -> Key:
     return sample(list(range(1, n + 1)), n)
 
 
-def find(letter: str, cylinder: Cylinder) -> int:
+def find(letter: Letter, cylinder: Cylinder) -> int:
     """Return the index of the first occurence of letter in cylinder. It
     returns -1 if there is no occurence of letter.
     """
@@ -84,3 +86,23 @@ def jefferson_shift(n: int) -> int:
     """Shift n of 6 modulo 26. Partial application of shift."""
 
     return shift(n, 6, 26)
+
+
+def cipher_letter(letter: Letter, cylinder: Cylinder) -> Letter:
+    """Encrypt letter using the jefferson disk/cylinder provided."""
+
+    return cylinder[jefferson_shift(find(letter, cylinder))]
+
+
+def cipher_message(message: str, key: Key, cylinders: Cylinders) -> str:
+    """Encrypt message using the key and the set of cylinders provided with the
+    Jefferson method.
+    """
+
+    if is_key_valid(key, len(key)):
+        return ''.join([
+            cipher_letter(letter, cylinders[key[index]])
+            for index, letter in enumerate(message)
+        ])
+    else:
+        raise Exception("The key provided is not valid.")
