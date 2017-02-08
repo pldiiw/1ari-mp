@@ -3,9 +3,9 @@ from os import remove
 from random import seed
 from string import ascii_uppercase
 
-from JeffersonShell import (
-    generate_cylinder, generate_key, is_key_valid, load_cylinders_from_file,
-    sanitize_message, write_cylinders_to_file, find, shift, jefferson_shift)
+from JeffersonShell import (find, generate_disk, generate_key, is_key_valid,
+                            jefferson_shift, load_cylinder_from_file,
+                            sanitize_message, shift, write_cylinder_to_file)
 
 
 class JeffersonShellTests(unittest.TestCase):
@@ -22,37 +22,37 @@ class JeffersonShellTests(unittest.TestCase):
         three_should = "Welcome"
         self.assertEqual(sanitize_message(three), three_should)
 
-    def test_generate_cylinder(self):
+    def test_generate_disk(self):
         seed(5)
-        one = generate_cylinder()
+        one = generate_disk()
         one_should = 'TIXLUQAOHBFVPRDGYSWZNJMEKC'
         self.assertEqual(one, one_should)
         self.assertEqual(''.join(sorted(one)), ascii_uppercase)
 
-        two = generate_cylinder()
+        two = generate_disk()
         two_should = 'FYCETVOWSAQDMUXLRZNJIBGKPH'
         self.assertEqual(two, two_should)
         self.assertEqual(''.join(sorted(two)), ascii_uppercase)
 
         seed(55)
-        three = generate_cylinder()
+        three = generate_disk()
         three_should = 'CGEJZFWVLPMYIOUQNAXTBHKSRD'
         self.assertEqual(three, three_should)
         self.assertEqual(''.join(sorted(three)), ascii_uppercase)
 
-    def test_load_cylinders_from_file(self):
-        file = 'cylinders_test.txt'
+    def test_load_cylinder_from_file(self):
+        file = 'cylinder_test.txt'
         seed(10)
-        write_cylinders_to_file(file, 5)
+        write_cylinder_to_file(file, 5)
         seed(10)
         should = {
-            1: generate_cylinder(),
-            2: generate_cylinder(),
-            3: generate_cylinder(),
-            4: generate_cylinder(),
-            5: generate_cylinder()
+            1: generate_disk(),
+            2: generate_disk(),
+            3: generate_disk(),
+            4: generate_disk(),
+            5: generate_disk()
         }
-        self.assertEqual(load_cylinders_from_file(file), should)
+        self.assertEqual(load_cylinder_from_file(file), should)
         remove(file)
 
     def is_key_valid(self):
