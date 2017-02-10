@@ -3,9 +3,10 @@ from os import remove
 from random import seed
 from string import ascii_uppercase
 
-from JeffersonShell import (find, generate_disk, generate_key, is_key_valid,
-                            jefferson_shift, load_cylinder_from_file,
-                            sanitize_message, shift, write_cylinder_to_file)
+from JeffersonShell import (cipher_letter, cipher_message, find, generate_disk,
+                            generate_key, is_key_valid, jefferson_shift,
+                            load_cylinder_from_file, sanitize_message, shift,
+                            write_cylinder_to_file)
 
 
 class JeffersonShellTests(unittest.TestCase):
@@ -106,6 +107,29 @@ class JeffersonShellTests(unittest.TestCase):
         three = jefferson_shift(43239)
         three_should = 7
         self.assertEqual(three, three_should)
+
+    def test_cipher_letter(self):
+        one = cipher_letter("E", "YVOFUIRBJTMXQLZAWHCNEGKDSP")
+        one_should = "Y"
+        self.assertEqual(one, one_should)
+
+        two = cipher_letter("A", "SUNIBHLAPVZYWOKEMCJXRDFTGQ")
+        two_should = "O"
+        self.assertEqual(two, two_should)
+
+    def test_cipher_message(self):
+        message_one = "ENJOY"
+        cylinder_one = {
+            1: "FEWPQLHBDSMCNAXIJTKUOZYVRG",
+            2: "UGWAEIXHTOVRKSQBNJPCYFMDLZ",
+            3: "BVWYUZKLGQXHJOTDSMNRIECPFA",
+            4: "UJEDQRSHOCFBWANMITXPZYKVLG",
+            5: "JBFULONATYWEHRPZVXSCKDIGQM"
+        }
+        key_one = [3, 2, 5, 1, 4]
+        one = cipher_message(message_one, key_one, cylinder_one)
+        one_should = "VMNFJ"
+        self.assertEqual(one, one_should)
 
 
 if __name__ == "__main__":
