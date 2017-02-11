@@ -134,7 +134,7 @@ def clear_surface(surface) -> None:
 
 def rotate_disk_in_place(cylinder: Cylinder,
                          disk_number: int,
-                         does_rotate_up=True) -> None:
+                         does_rotate_up: bool=True) -> None:
     """Rotate a disk from the given cylinder in place."""
 
     cylinder[disk_number] = rotate_disk(cylinder[disk_number], does_rotate_up)
@@ -143,7 +143,7 @@ def rotate_disk_in_place(cylinder: Cylinder,
 def rotate_disk(disk: Disk, does_rotate_up: bool=True) -> Disk:
     """Shift all elements of disk by one."""
 
-    return ''.join(shift_list(list(disk), 1 if does_rotate_up else -1))
+    return ''.join(shift_list(list(disk), -1 if does_rotate_up else 1))
 
 
 def shift_list(l: List, n: int) -> List:
