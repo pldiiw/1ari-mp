@@ -17,12 +17,12 @@ class JeffersonGUITests(unittest.TestCase):
 
     def test_rotate_disk(self):
         disk_one = "HQXRNLSJCMDUFWIPBVOEAZGTYK"
-        one = rotate_disk(rotate_disk(disk_one))
+        one = rotate_disk(rotate_disk(disk_one, False), False)
         one_should = "YKHQXRNLSJCMDUFWIPBVOEAZGT"
         self.assertEqual(one, one_should)
 
         disk_two = "FRDKXIHMZPVQBJLACOYGTWNEUS"
-        two = rotate_disk(disk_two, False)
+        two = rotate_disk(disk_two)
         two_should = "RDKXIHMZPVQBJLACOYGTWNEUSF"
         self.assertEqual(two, two_should)
 
@@ -31,9 +31,9 @@ class JeffersonGUITests(unittest.TestCase):
             1: "BVWMXKQYSOCHTEAZRLUJDIFGPN",
             2: "YIQMOKUWAZHTDBRCLGJXVEFNPS"
         }
-        rotate_disk_in_place(cylinder_one, 1)
-        rotate_disk_in_place(cylinder_one, 1)
-        rotate_disk_in_place(cylinder_one, 2, False)
+        rotate_disk_in_place(cylinder_one, 1, False)
+        rotate_disk_in_place(cylinder_one, 1, False)
+        rotate_disk_in_place(cylinder_one, 2)
         cylinder_one_should = {
             1: "PNBVWMXKQYSOCHTEAZRLUJDIFG",
             2: "IQMOKUWAZHTDBRCLGJXVEFNPSY"
