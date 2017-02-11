@@ -23,7 +23,7 @@ Then run the GUI:
 
 ## Tests
 
-There's a test suite inside the `test` directory.
+There's a test suite inside the `test/` directory.
 
 To run it, just execute the test script:
 
@@ -44,7 +44,7 @@ Tests are under the `test/` directory.
 
 Coding conventions are important to keep the code base clean. We followed the
 guidelines defined in the [PEP-8]. [YAPF] helped us reach this goal without
-headaches.
+headaches, and by saving a lot of time.
 
 ### Function annotations
 
