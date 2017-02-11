@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FILES_TO_TYPECHECK=(JeffersonShell.py)
+FILES_TO_TYPECHECK=(JeffersonShell.py JeffersonGUI.py)
 
 REPODIR=$(dirname $0)
 export PYTHONPATH=$REPODIR/src:$PYTHONPATH
