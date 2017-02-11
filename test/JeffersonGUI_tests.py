@@ -1,6 +1,7 @@
 import unittest
 
-from JeffersonGUI import rotate_disk, rotate_disk_in_place, shift_list
+from JeffersonGUI import (rotate_disk, rotate_disk_from_cylinder_in_place,
+                          shift_list)
 
 
 class JeffersonGUITests(unittest.TestCase):
@@ -26,14 +27,14 @@ class JeffersonGUITests(unittest.TestCase):
         two_should = "RDKXIHMZPVQBJLACOYGTWNEUSF"
         self.assertEqual(two, two_should)
 
-    def test_rotate_disk_in_place(self):
+    def test_rotate_disk_from_cylinder_in_place(self):
         cylinder_one = {
             1: "BVWMXKQYSOCHTEAZRLUJDIFGPN",
             2: "YIQMOKUWAZHTDBRCLGJXVEFNPS"
         }
-        rotate_disk_in_place(cylinder_one, 1, False)
-        rotate_disk_in_place(cylinder_one, 1, False)
-        rotate_disk_in_place(cylinder_one, 2)
+        rotate_disk_from_cylinder_in_place(cylinder_one, 1, False)
+        rotate_disk_from_cylinder_in_place(cylinder_one, 1, False)
+        rotate_disk_from_cylinder_in_place(cylinder_one, 2)
         cylinder_one_should = {
             1: "PNBVWMXKQYSOCHTEAZRLUJDIFG",
             2: "IQMOKUWAZHTDBRCLGJXVEFNPSY"

@@ -78,7 +78,7 @@ def draw() -> bool:
 
     clear_surface(WINDOW)
     draw_cylinder(CYLINDER, CYLINDER_SURFACE)
-    rotate_disk_in_place(CYLINDER, 3)
+    rotate_disk_from_cylinder_in_place(CYLINDER, 3)
     pygame.display.flip()
     CLOCK.tick(FPS)
     return True
@@ -132,9 +132,9 @@ def clear_surface(surface) -> None:
     surface.fill(BLACK)
 
 
-def rotate_disk_in_place(cylinder: Cylinder,
-                         disk_number: int,
-                         does_rotate_up: bool=True) -> None:
+def rotate_disk_from_cylinder_in_place(cylinder: Cylinder,
+                                       disk_number: int,
+                                       does_rotate_up: bool=True) -> None:
     """Rotate a disk from the given cylinder in place."""
 
     cylinder[disk_number] = rotate_disk(cylinder[disk_number], does_rotate_up)
