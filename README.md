@@ -75,6 +75,32 @@ pushes even further the concept of a consistent code style.
 
 ## Notes on function naming
 
+The functions and procedures names asked in the subject differ a bit from the
+ones we wrote. We chose to slightly modify the naming to have a codebase
+matching the PEP-8 closer and having more expressive names, resulting in more
+readable code.
+
+Here's a corresponding table with on the left the subroutine
+name in the subject and on the right the matching name inside our code:
+
+| Name in the subject | In the actual code      |
+|--------------------:|:------------------------|
+| convertLetters      | sanitize_message        |
+| mix                 | generate_disk           |
+| createCylinder      | write_cylinder_to_file  |
+| loadCylinder        | load_cylinder_from_file |
+| KeyOK               | is_key_valid            |
+| createKey           | generate_key            |
+| find                | find                    |
+| shift               | jefferson_shift         |
+| cipherLetter        | cipher_letter           |
+| cipherText          | cipher_message          |
+| displayCylinder     | draw_disk               |
+| displayCylinders    | draw_cylinder           |
+| enterKey            |                         |
+| rotateCylinder      |                         |
+| rotateCylinders     |                         |
+
 ## Questions
 
 The following sections contains the answers to the questions which are in the
