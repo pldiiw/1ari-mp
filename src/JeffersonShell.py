@@ -94,6 +94,12 @@ def cipher_letter(letter: Letter, disk: Disk) -> Letter:
     return disk[jefferson_shift(find(letter, disk))]
 
 
+def decipher_letter(letter: Letter, disk: Disk) -> Letter:
+    """Decrypt letter using the jefferson disk provided."""
+
+    return disk[shift(find(letter, disk), 20, 26)]
+
+
 def cipher_message(message: str, key: Key, cylinder: Cylinder) -> str:
     """Encrypt message with the Jefferson method using the key and the set of
     disks provided.
@@ -102,6 +108,20 @@ def cipher_message(message: str, key: Key, cylinder: Cylinder) -> str:
     if is_key_valid(key, len(key)):
         return ''.join([
             cipher_letter(letter, cylinder[key[index]])
+            for index, letter in enumerate(message)
+        ])
+    else:
+        raise Exception("The key provided is not valid.")
+
+
+def decipher_message(message: str, key: Key, cylinder: Cylinder) -> str:
+    """Decrypt message with the Jefferson method using the key and the set of
+    disks provided.
+    """
+
+    if is_key_valid(key, len(key)):
+        return ''.join([
+            decipher_letter(letter, cylinder[key[index]])
             for index, letter in enumerate(message)
         ])
     else:
