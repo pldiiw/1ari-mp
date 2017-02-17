@@ -3,10 +3,10 @@ from os import remove
 from random import seed
 from string import ascii_uppercase
 
-from JeffersonShell import (cipher_letter, cipher_message, find, generate_disk,
-                            generate_key, is_key_valid, jefferson_shift,
-                            load_cylinder_from_file, sanitize_message, shift,
-                            write_cylinder_to_file)
+from JeffersonShell import (cipher_letter, cipher_message, decipher_message,
+                            find, generate_disk, generate_key, is_key_valid,
+                            jefferson_shift, load_cylinder_from_file,
+                            sanitize_message, shift, write_cylinder_to_file)
 
 
 class JeffersonShellTests(unittest.TestCase):
@@ -144,6 +144,7 @@ class JeffersonShellTests(unittest.TestCase):
         one = decipher_message(message_one, key_one, cylinder_one)
         one_should = "ENJOY"
         self.assertEqual(one, one_should)
+
 
 if __name__ == "__main__":
     unittest.main()
