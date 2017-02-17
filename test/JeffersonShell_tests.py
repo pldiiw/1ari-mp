@@ -131,6 +131,19 @@ class JeffersonShellTests(unittest.TestCase):
         one_should = "VMNFJ"
         self.assertEqual(one, one_should)
 
+    def test_decipher_message(self):
+        message_one = "VMNFJ"
+        cylinder_one = {
+            1: "FEWPQLHBDSMCNAXIJTKUOZYVRG",
+            2: "UGWAEIXHTOVRKSQBNJPCYFMDLZ",
+            3: "BVWYUZKLGQXHJOTDSMNRIECPFA",
+            4: "UJEDQRSHOCFBWANMITXPZYKVLG",
+            5: "JBFULONATYWEHRPZVXSCKDIGQM"
+        }
+        key_one = [3, 2, 5, 1, 4]
+        one = decipher_message(message_one, key_one, cylinder_one)
+        one_should = "ENJOY"
+        self.assertEqual(one, one_should)
 
 if __name__ == "__main__":
     unittest.main()

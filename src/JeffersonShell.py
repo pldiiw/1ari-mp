@@ -88,6 +88,12 @@ def jefferson_shift(n: int) -> int:
     return shift(n, 6, 26)
 
 
+def revert_jefferson_shift(n: int) -> int:
+    """Shift n of 6 modulo 26. Partial application of shift."""
+
+    return shift(n, -6, 26)
+
+
 def cipher_letter(letter: Letter, disk: Disk) -> Letter:
     """Encrypt letter using the jefferson disk provided."""
 
@@ -97,7 +103,7 @@ def cipher_letter(letter: Letter, disk: Disk) -> Letter:
 def decipher_letter(letter: Letter, disk: Disk) -> Letter:
     """Decrypt letter using the jefferson disk provided."""
 
-    return disk[shift(find(letter, disk), 20, 26)]
+    return disk[revert_jefferson_shift(find(letter, disk))]
 
 
 def cipher_message(message: str, key: Key, cylinder: Cylinder) -> str:
