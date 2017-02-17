@@ -27,19 +27,20 @@ BUTTON_FG_COLOR = BLACK
 BUTTON_BG_COLOR = WHITE
 
 # GUI globals
-CYLINDER = None
-WINDOW = None
-CLOCK = None
-CYLINDER_SURFACE_DIMENSIONS = None
-CYLINDER_SURFACE = None
-DISK_SURFACE_DIMENSIONS = None
-MANIPULATION_SURFACE_DIMENSIONS = None
-MANIPULATION_SURFACE = None
-SIDEBAR_SURFACE_DIMENSIONS = None
-SIDEBAR_SURFACE = None
-ROTATION_BUTTONS_DATA = None
 CLICKABLE_COMPONENTS = None
+CLOCK = None
+CYLINDER = None
+CYLINDER_SURFACE = None
+CYLINDER_SURFACE_DIMENSIONS = None
+DISK_SURFACE_DIMENSIONS = None
 FONT = None
+MANIPULATION_SURFACE = None
+MANIPULATION_SURFACE_DIMENSIONS = None
+ROTATION_BUTTONS_DATA = None
+ROTATION_BUTTON_DIMENSIONS = None
+SIDEBAR_SURFACE = None
+SIDEBAR_SURFACE_DIMENSIONS = None
+WINDOW = None
 
 
 def main() -> None:
@@ -54,19 +55,20 @@ def main() -> None:
 def setup() -> None:
     """Initialize pygame and the various GUI globals."""
 
-    global WINDOW
+    global CLICKABLE_COMPONENTS
     global CLOCK
     global CYLINDER
-    global CYLINDER_SURFACE_DIMENSIONS
     global CYLINDER_SURFACE
+    global CYLINDER_SURFACE_DIMENSIONS
     global DISK_SURFACE_DIMENSIONS
-    global MANIPULATION_SURFACE_DIMENSIONS
-    global MANIPULATION_SURFACE
-    global SIDEBAR_SURFACE_DIMENSIONS
-    global SIDEBAR_SURFACE
-    global ROTATION_BUTTONS_DATA
-    global CLICKABLE_COMPONENTS
     global FONT
+    global MANIPULATION_SURFACE
+    global MANIPULATION_SURFACE_DIMENSIONS
+    global ROTATION_BUTTONS_DATA
+    global ROTATION_BUTTON_DIMENSIONS
+    global SIDEBAR_SURFACE
+    global SIDEBAR_SURFACE_DIMENSIONS
+    global WINDOW
 
     pygame.init()
 
@@ -81,21 +83,24 @@ def setup() -> None:
                                    WINDOW_DIMENSIONS[1] / 10 * 9)
     CYLINDER_SURFACE = WINDOW.subsurface((0, 0), CYLINDER_SURFACE_DIMENSIONS)
 
-    DISK_SURFACE_DIMENSIONS = (CYLINDER_SURFACE_DIMENSIONS[0] / len(CYLINDER),
-                               CYLINDER_SURFACE_DIMENSIONS[1])
-
-    MANIPULATION_SURFACE_DIMENSIONS = (CYLINDER_SURFACE_DIMENSIONS[0],
-                                       WINDOW_DIMENSIONS[1] - CYLINDER_SURFACE_DIMENSIONS[1])
+    MANIPULATION_SURFACE_DIMENSIONS = (
+        CYLINDER_SURFACE_DIMENSIONS[0],
+        WINDOW_DIMENSIONS[1] - CYLINDER_SURFACE_DIMENSIONS[1])
     MANIPULATION_SURFACE = WINDOW.subsurface(
         (0, CYLINDER_SURFACE_DIMENSIONS[1]), MANIPULATION_SURFACE_DIMENSIONS)
 
-    SIDEBAR_SURFACE_DIMENSIONS = (WINDOW_DIMENSIONS[0] - CYLINDER_SURFACE_DIMENSIONS[0],
-                                  WINDOW_DIMENSIONS[1])
-    SIDEBAR_SURFACE = WINDOW.subsurface(
-        (CYLINDER_SURFACE_DIMENSIONS[0], 0), SIDEBAR_SURFACE_DIMENSIONS)
+    SIDEBAR_SURFACE_DIMENSIONS = (
+        WINDOW_DIMENSIONS[0] - CYLINDER_SURFACE_DIMENSIONS[0],
+        WINDOW_DIMENSIONS[1])
+    SIDEBAR_SURFACE = WINDOW.subsurface((CYLINDER_SURFACE_DIMENSIONS[0], 0),
+                                        SIDEBAR_SURFACE_DIMENSIONS)
 
-    ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(
-        len(CYLINDER), MANIPULATION_SURFACE)
+    DISK_SURFACE_DIMENSIONS = (CYLINDER_SURFACE_DIMENSIONS[0] / len(CYLINDER),
+                               CYLINDER_SURFACE_DIMENSIONS[1])
+    ROTATION_BUTTON_DIMENSIONS = (DISK_SURFACE_DIMENSIONS[0],
+                                  MANIPULATION_SURFACE_DIMENSIONS[1] / 2)
+
+    ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(len(CYLINDER))
     CLICKABLE_COMPONENTS = ROTATION_BUTTONS_DATA
 
     FONT = pygame.font.Font(pygame.font.match_font(FONT_NAME), FONT_SIZE)
@@ -109,7 +114,7 @@ def draw() -> bool:
 
     # Redraw UI
     clear_surface(WINDOW)
-    draw_cylinder(CYLINDER, CYLINDER_SURFACE)
+    draw_cylinder(CYLINDER)
     draw_rotation_buttons(ROTATION_BUTTONS_DATA)
     SIDEBAR_SURFACE.fill((255, 0, 0))
     pygame.display.flip()
@@ -132,16 +137,16 @@ def draw() -> bool:
     return True
 
 
-def draw_cylinder(cylinder: Cylinder, cylinder_surface) -> None:
-    """Given a cylinder and a surface to draw on, it will draw every disks the
-    cylinder contains.
+def draw_cylinder(cylinder: Cylinder) -> None:
+    """Given a cylinder, it will draw every disks the cylinder contains onto
+    the surface where the cylinder is ought to be drawn (CYLINDER_SURFACE).
     """
 
     for disk_number, disk in cylinder.items():
-        draw_disk(disk, disk_number, cylinder_surface)
+        draw_disk(disk, disk_number)
 
 
-def draw_disk(disk: Disk, disk_number: int, cylinder_surface) -> None:
+def draw_disk(disk: Disk, disk_number: int) -> None:
     """Given a disk, its position on the cylinder and a surface to draw on,
     this subroutine will draw this disk at the appropriate location.
     """
@@ -149,7 +154,7 @@ def draw_disk(disk: Disk, disk_number: int, cylinder_surface) -> None:
     disk_dimensions = DISK_SURFACE_DIMENSIONS
     disk_pos = (disk_dimensions[0] * (disk_number - 1), 0)
     disk_rect = pygame.Rect(disk_pos, disk_dimensions)
-    disk_surface = cylinder_surface.subsurface(disk_rect)
+    disk_surface = CYLINDER_SURFACE.subsurface(disk_rect)
     for letter_number, letter in enumerate(disk):
         draw_letter(letter, letter_number, disk_surface)
 
@@ -196,31 +201,27 @@ def shift_list(l: List, n: int) -> List:
     return [l[(i - n) % len(l)] for i in range(len(l))]
 
 
-def generate_rotation_buttons_data(amount_of_disks: int,
-                                   surface) -> List[ButtonData]:
+def generate_rotation_buttons_data(amount_of_disks: int) -> List[ButtonData]:
     """Compute all of the information needed to draw the rotation buttons and
     later interact with them.
     """
 
     return flatten([[
-        generate_rotation_button_data(disk_number, surface, True),
-        generate_rotation_button_data(disk_number, surface, False)
+        generate_rotation_button_data(disk_number, True),
+        generate_rotation_button_data(disk_number, False)
     ] for disk_number in range(1, amount_of_disks + 1)])
 
 
 def generate_rotation_button_data(disk_number: int,
-                                  surface,
                                   does_rotate_up: bool) -> ButtonData:
     """Generate rotation button data for disk disk_number."""
 
-    button_surface_dimensions = (DISK_SURFACE_DIMENSIONS[0],
-                                 surface.get_height() / 2)
     button_surface_pos = (
-        button_surface_dimensions[0] * (disk_number - 1),
-        surface.get_rect().top +
-        (0 if does_rotate_up else button_surface_dimensions[1]))
-    button_surface = surface.subsurface(button_surface_pos,
-                                        button_surface_dimensions)
+        ROTATION_BUTTON_DIMENSIONS[0] * (disk_number - 1),
+        MANIPULATION_SURFACE.get_rect().top +
+        (0 if does_rotate_up else ROTATION_BUTTON_DIMENSIONS[1]))
+    button_surface = MANIPULATION_SURFACE.subsurface(
+        button_surface_pos, ROTATION_BUTTON_DIMENSIONS)
     return {
         'type': 'rotation',
         'does_rotate_up': does_rotate_up,
@@ -228,7 +229,7 @@ def generate_rotation_button_data(disk_number: int,
         'onclick': partial(rotate_disk_from_cylinder_in_place, CYLINDER,
                            disk_number, does_rotate_up),
         'clickable': True,
-        'drawable': True,
+        'drawable': True
     }
 
 
@@ -245,21 +246,30 @@ def draw_rotation_button(button_data: ButtonData) -> None:
     arrow onto it.
     """
 
+    button_surface = button_data['surface']
     if button_data['drawable']:
-        button_data['surface'].fill(BUTTON_BG_COLOR)
+        button_surface.fill(BUTTON_BG_COLOR)
 
         does_rotate_up = button_data['does_rotate_up']
-        left = button_data['surface'].get_rect().left
-        right = button_data['surface'].get_rect().right
-        top = button_data['surface'].get_rect().top
-        bottom = button_data['surface'].get_rect().bottom
-        point_list = [[left, bottom if does_rotate_up else top],
-                      [right / 2, top if does_rotate_up else bottom],
-                      [right, bottom if does_rotate_up else top]]
-        pygame.draw.aalines(button_data['surface'], BUTTON_FG_COLOR, False,
-                            point_list)
+        left = button_surface.get_rect().left
+        right = button_surface.get_rect().right
+        top = button_surface.get_rect().top
+        bottom = button_surface.get_rect().bottom
+        w = (right - left) / 100 # One percent width
+        h = (bottom - top) / 100 # One percent height
+        point_list = [[
+            left + (20 * w), ((bottom - 20 * h)
+                              if does_rotate_up else (top + 20 * h))
+        ], [
+            right / 2, ((top + 20 * h)
+                        if does_rotate_up else (bottom - 20 * h))
+        ], [
+            right - (20 * w), ((bottom - 20 * h)
+                               if does_rotate_up else (top + (20 * h)))
+        ]]
+        pygame.draw.aalines(button_surface, BUTTON_FG_COLOR, False, point_list)
     else:
-        button_data['surface'].fill((0, 0, 0, 0))
+        button_surface.fill((0, 0, 0, 0))
 
 
 def flatten(l: List[List[Any]]) -> List[Any]:
