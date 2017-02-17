@@ -40,6 +40,9 @@ ROTATION_BUTTONS_DATA = None
 ROTATION_BUTTON_DIMENSIONS = None
 SIDEBAR_SURFACE = None
 SIDEBAR_SURFACE_DIMENSIONS = None
+FINISH_BUTTON_DATA = None
+FINISH_BUTTON_DIMENSIONS = None
+FINISH_BUTTON_SURFACE = None
 WINDOW = None
 
 
@@ -68,6 +71,9 @@ def setup() -> None:
     global ROTATION_BUTTON_DIMENSIONS
     global SIDEBAR_SURFACE
     global SIDEBAR_SURFACE_DIMENSIONS
+    global FINISH_BUTTON_DATA
+    global FINISH_BUTTON_DIMENSIONS
+    global FINISH_BUTTON_SURFACE
     global WINDOW
 
     pygame.init()
@@ -91,9 +97,16 @@ def setup() -> None:
 
     SIDEBAR_SURFACE_DIMENSIONS = (
         WINDOW_DIMENSIONS[0] - CYLINDER_SURFACE_DIMENSIONS[0],
-        WINDOW_DIMENSIONS[1])
+        CYLINDER_SURFACE_DIMENSIONS[1])
     SIDEBAR_SURFACE = WINDOW.subsurface((CYLINDER_SURFACE_DIMENSIONS[0], 0),
                                         SIDEBAR_SURFACE_DIMENSIONS)
+
+    FINISH_BUTTON_DIMENSIONS = (
+        SIDEBAR_SURFACE_DIMENSIONS[0],
+        WINDOW_DIMENSIONS[1] - SIDEBAR_SURFACE_DIMENSIONS[1])
+    FINISH_BUTTON_SURFACE = WINDOW.subsurface(
+        (MANIPULATION_SURFACE_DIMENSIONS[0], SIDEBAR_SURFACE_DIMENSIONS[1]),
+        FINISH_BUTTON_DIMENSIONS)
 
     DISK_SURFACE_DIMENSIONS = (CYLINDER_SURFACE_DIMENSIONS[0] / len(CYLINDER),
                                CYLINDER_SURFACE_DIMENSIONS[1])
@@ -101,7 +114,8 @@ def setup() -> None:
                                   MANIPULATION_SURFACE_DIMENSIONS[1] / 2)
 
     ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(len(CYLINDER))
-    CLICKABLE_COMPONENTS = ROTATION_BUTTONS_DATA
+    FINISH_BUTTON_DATA = generate_finish_button_data()
+    CLICKABLE_COMPONENTS = ROTATION_BUTTONS_DATA + [FINISH_BUTTON_DATA]
 
     FONT = pygame.font.Font(pygame.font.match_font(FONT_NAME), FONT_SIZE)
 
@@ -117,6 +131,7 @@ def draw() -> bool:
     draw_cylinder(CYLINDER)
     draw_rotation_buttons(ROTATION_BUTTONS_DATA)
     SIDEBAR_SURFACE.fill((255, 0, 0))
+    draw_finish_button(FINISH_BUTTON_DATA)
     pygame.display.flip()
 
     # Handle events
@@ -255,8 +270,8 @@ def draw_rotation_button(button_data: ButtonData) -> None:
         right = button_surface.get_rect().right
         top = button_surface.get_rect().top
         bottom = button_surface.get_rect().bottom
-        w = (right - left) / 100 # One percent width
-        h = (bottom - top) / 100 # One percent height
+        w = (right - left) / 100  # One percent width
+        h = (bottom - top) / 100  # One percent height
         point_list = [[
             left + (20 * w), ((bottom - 20 * h)
                               if does_rotate_up else (top + 20 * h))
@@ -268,6 +283,34 @@ def draw_rotation_button(button_data: ButtonData) -> None:
                                if does_rotate_up else (top + (20 * h)))
         ]]
         pygame.draw.aalines(button_surface, BUTTON_FG_COLOR, False, point_list)
+    else:
+        button_surface.fill((0, 0, 0, 0))
+
+
+def generate_finish_button_data() -> ButtonData:
+    """Create a dict for later interacting with the finish button."""
+
+    return {
+        'type': 'finish',
+        'surface': FINISH_BUTTON_SURFACE,
+        'onclick': partial(print, 'FINISH'),  # TODO
+        'drawable': True,
+        'clickable': True
+    }
+
+
+def draw_finish_button(button_data: ButtonData) -> None:
+    """Draw the finish button using its button data."""
+
+    button_surface = button_data['surface']
+    if button_data['drawable']:
+        button_surface.fill(BUTTON_BG_COLOR)
+
+        text_surface = FONT.render('Finish', True, BUTTON_FG_COLOR)
+        text_pos = text_surface.get_rect(
+            center=(0.5 * button_surface.get_width(),
+                    0.5 * button_surface.get_height()))
+        button_surface.blit(text_surface, text_pos)
     else:
         button_surface.fill((0, 0, 0, 0))
 
