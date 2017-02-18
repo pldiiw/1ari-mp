@@ -119,7 +119,7 @@ The following sections contains the answers to the questions which are in the
 ## LICENSE
 
 This repository is under the Unlicense. See LICENSE file for more
-information.
+information.  
 EXCEPTING the file [`subject.pdf`](subject.pdf) which is licensed to SUPINFO
 International University under the terms of the [FreeBSD License].
 
