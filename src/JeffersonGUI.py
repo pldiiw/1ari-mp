@@ -11,13 +11,14 @@ Cylinder = Dict[int, Disk]
 Key = List[int]
 Letter = str
 ButtonData = Dict[str, Any]
+Color = Tuple[int, int, int]
 
 # Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 # GUI Parameters
-FPS = 60
+FPS = 30
 WINDOW_DIMENSIONS = (1500, 1000)  # (width, heigth)
 WINDOW_CAPTION = 'Jefferson Disk'
 FONT_NAME = 'FixedSys'
@@ -27,23 +28,10 @@ BUTTON_FG_COLOR = BLACK
 BUTTON_BG_COLOR = WHITE
 
 # GUI globals
-CLICKABLE_COMPONENTS = None
 CLOCK = None
 CYLINDER = None
-CYLINDER_SURFACE = None
-CYLINDER_SURFACE_DIMENSIONS = None
-DISK_SURFACE_DIMENSIONS = None
 FINISH_BUTTON_DATA = None
-FINISH_BUTTON_DIMENSIONS = None
-FINISH_BUTTON_SURFACE = None
-FONT = None
-MANIPULATION_SURFACE = None
-MANIPULATION_SURFACE_DIMENSIONS = None
 ROTATION_BUTTONS_DATA = None
-ROTATION_BUTTON_DIMENSIONS = None
-SIDEBAR_ANNOTATION_DIMENSIONS = None
-SIDEBAR_SURFACE = None
-SIDEBAR_SURFACE_DIMENSIONS = None
 WINDOW = None
 
 
@@ -59,23 +47,10 @@ def main() -> None:
 def setup() -> None:
     """Initialize pygame and the various GUI globals."""
 
-    global CLICKABLE_COMPONENTS
     global CLOCK
     global CYLINDER
-    global CYLINDER_SURFACE
-    global CYLINDER_SURFACE_DIMENSIONS
-    global DISK_SURFACE_DIMENSIONS
     global FINISH_BUTTON_DATA
-    global FINISH_BUTTON_DIMENSIONS
-    global FINISH_BUTTON_SURFACE
-    global FONT
-    global MANIPULATION_SURFACE
-    global MANIPULATION_SURFACE_DIMENSIONS
     global ROTATION_BUTTONS_DATA
-    global ROTATION_BUTTON_DIMENSIONS
-    global SIDEBAR_ANNOTATION_DIMENSIONS
-    global SIDEBAR_SURFACE
-    global SIDEBAR_SURFACE_DIMENSIONS
     global WINDOW
 
     pygame.init()
@@ -87,41 +62,8 @@ def setup() -> None:
 
     CYLINDER = {i: ascii_uppercase for i in range(1, 11)}
 
-    CYLINDER_SURFACE_DIMENSIONS = (WINDOW_DIMENSIONS[0] / 10 * 9,
-                                   WINDOW_DIMENSIONS[1] / 10 * 9)
-    CYLINDER_SURFACE = WINDOW.subsurface((0, 0), CYLINDER_SURFACE_DIMENSIONS)
-
-    MANIPULATION_SURFACE_DIMENSIONS = (
-        CYLINDER_SURFACE_DIMENSIONS[0],
-        WINDOW_DIMENSIONS[1] - CYLINDER_SURFACE_DIMENSIONS[1])
-    MANIPULATION_SURFACE = WINDOW.subsurface(
-        (0, CYLINDER_SURFACE_DIMENSIONS[1]), MANIPULATION_SURFACE_DIMENSIONS)
-
-    SIDEBAR_SURFACE_DIMENSIONS = (
-        WINDOW_DIMENSIONS[0] - CYLINDER_SURFACE_DIMENSIONS[0],
-        CYLINDER_SURFACE_DIMENSIONS[1])
-    SIDEBAR_SURFACE = WINDOW.subsurface((CYLINDER_SURFACE_DIMENSIONS[0], 0),
-                                        SIDEBAR_SURFACE_DIMENSIONS)
-
-    FINISH_BUTTON_DIMENSIONS = (
-        SIDEBAR_SURFACE_DIMENSIONS[0],
-        WINDOW_DIMENSIONS[1] - SIDEBAR_SURFACE_DIMENSIONS[1])
-    FINISH_BUTTON_SURFACE = WINDOW.subsurface(
-        (MANIPULATION_SURFACE_DIMENSIONS[0], SIDEBAR_SURFACE_DIMENSIONS[1]),
-        FINISH_BUTTON_DIMENSIONS)
-
-    DISK_SURFACE_DIMENSIONS = (CYLINDER_SURFACE_DIMENSIONS[0] / len(CYLINDER),
-                               CYLINDER_SURFACE_DIMENSIONS[1])
-    ROTATION_BUTTON_DIMENSIONS = (DISK_SURFACE_DIMENSIONS[0],
-                                  MANIPULATION_SURFACE_DIMENSIONS[1] / 2)
-    SIDEBAR_ANNOTATION_DIMENSIONS = (SIDEBAR_SURFACE_DIMENSIONS[0],
-                                     SIDEBAR_SURFACE_DIMENSIONS[1] / 26)
-
-    ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(len(CYLINDER))
-    FINISH_BUTTON_DATA = generate_finish_button_data()
-    CLICKABLE_COMPONENTS = ROTATION_BUTTONS_DATA + [FINISH_BUTTON_DATA]
-
-    FONT = pygame.font.Font(pygame.font.match_font(FONT_NAME), FONT_SIZE)
+    ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(CYLINDER, WINDOW)
+    FINISH_BUTTON_DATA = generate_finish_button_data(CYLINDER, WINDOW)
 
 
 def draw() -> bool:
@@ -132,24 +74,30 @@ def draw() -> bool:
 
     # Redraw UI
     clear_surface(WINDOW)
-    draw_cylinder(CYLINDER)
+    draw_cylinder(CYLINDER, WINDOW)
     draw_rotation_buttons(ROTATION_BUTTONS_DATA)
-    draw_sidebar_annotation("< CLEAR", 9)
-    draw_sidebar_annotation("< CIPHERED", 15)
+    draw_sidebar_annotation("< CLEAR", 9, WINDOW)
+    draw_sidebar_annotation("< CIPHERED", 15, WINDOW)
     draw_finish_button(FINISH_BUTTON_DATA)
     pygame.display.flip()
+
+    # Compute some values for thsi frame
+    clickable_components = [
+        component
+        for component in ROTATION_BUTTONS_DATA + [FINISH_BUTTON_DATA]
+        if component['clickable']
+    ]
 
     # Handle events
     for event in pygame.event.get():
         if event.type is QUIT:
             return False  # Abort program
         elif event.type is MOUSEBUTTONUP:
-            for clickable_component in CLICKABLE_COMPONENTS:
+            for clickable_component in clickable_components:
                 abs_component_rect = pygame.Rect(
                     clickable_component['surface'].get_abs_offset(),
                     clickable_component['surface'].get_size())
-                if (clickable_component['clickable'] and
-                        abs_component_rect.collidepoint(event.pos)):
+                if (abs_component_rect.collidepoint(event.pos)):
                     clickable_component['onclick']()
 
     # Wait the end of the frame
@@ -157,25 +105,31 @@ def draw() -> bool:
     return True
 
 
-def draw_cylinder(cylinder: Cylinder) -> None:
+def draw_cylinder(cylinder: Cylinder, window) -> None:
     """Given a cylinder, it will draw every disks the cylinder contains onto
     the surface where the cylinder is ought to be drawn (CYLINDER_SURFACE).
     """
 
-    for disk_number, disk in cylinder.items():
-        draw_disk(disk, disk_number)
+    cylinder_dimensions = (window.get_width() / 10 * 9,
+                           window.get_height() / 10 * 9)
+    cylinder_pos = (0, 0)
+    cylinder_surface = window.subsurface(cylinder_pos, cylinder_dimensions)
+
+    for disk_number in cylinder:
+        draw_disk(cylinder, disk_number, cylinder_surface)
 
 
-def draw_disk(disk: Disk, disk_number: int) -> None:
+def draw_disk(cylinder: Cylinder, disk_number: int, cylinder_surface) -> None:
     """Given a disk, its position on the cylinder and a surface to draw on,
     this subroutine will draw this disk at the appropriate location.
     """
 
-    disk_dimensions = DISK_SURFACE_DIMENSIONS
+    disk_dimensions = (cylinder_surface.get_width() / len(cylinder),
+                       cylinder_surface.get_height())
     disk_pos = (disk_dimensions[0] * (disk_number - 1), 0)
     disk_rect = pygame.Rect(disk_pos, disk_dimensions)
-    disk_surface = CYLINDER_SURFACE.subsurface(disk_rect)
-    for letter_number, letter in enumerate(disk):
+    disk_surface = cylinder_surface.subsurface(disk_rect)
+    for letter_number, letter in enumerate(cylinder[disk_number]):
         draw_letter(letter, letter_number, disk_surface)
 
 
@@ -187,16 +141,20 @@ def draw_letter(letter: Letter, letter_number: int, disk_surface) -> None:
     letter_pos = (0, letter_dimensions[1] * letter_number)
     letter_rect = pygame.Rect(letter_pos, letter_dimensions)
     letter_surface = disk_surface.subsurface(letter_rect)
-    write_letter(letter, letter_surface)
+    write_centered_text(letter, letter_surface)
 
 
-def write_letter(letter: Letter, letter_surface) -> None:
-    """Write a letter on the provided surface."""
+def write_centered_text(text: str,
+                        parent_surface,
+                        font_size: int=FONT_SIZE,
+                        font_color: Color=FONT_COLOR) -> None:
+    """Draw text centered onto the parent surface given."""
 
-    text_surface = FONT.render(letter, True, FONT_COLOR)
+    font = pygame.font.Font(pygame.font.match_font(FONT_NAME), font_size)
+    text_surface = font.render(text, True, font_color)
     text_pos = text_surface.get_rect(center=(
-        0.5 * letter_surface.get_width(), 0.5 * letter_surface.get_height()))
-    letter_surface.blit(text_surface, text_pos)
+        0.5 * parent_surface.get_width(), 0.5 * parent_surface.get_height()))
+    parent_surface.blit(text_surface, text_pos)
 
 
 def rotate_disk_from_cylinder_in_place(cylinder: Cylinder,
@@ -221,32 +179,36 @@ def shift_list(l: List, n: int) -> List:
     return [l[(i - n) % len(l)] for i in range(len(l))]
 
 
-def generate_rotation_buttons_data(amount_of_disks: int) -> List[ButtonData]:
+def generate_rotation_buttons_data(cylinder: Cylinder,
+                                   window) -> List[ButtonData]:
     """Compute all of the information needed to draw the rotation buttons and
     later interact with them.
     """
 
     return flatten([[
-        generate_rotation_button_data(disk_number, True),
-        generate_rotation_button_data(disk_number, False)
-    ] for disk_number in range(1, amount_of_disks + 1)])
+        generate_rotation_button_data(cylinder, disk_number, True, window),
+        generate_rotation_button_data(cylinder, disk_number, False, window)
+    ] for disk_number in range(1, len(cylinder) + 1)])
 
 
-def generate_rotation_button_data(disk_number: int,
-                                  does_rotate_up: bool) -> ButtonData:
+def generate_rotation_button_data(cylinder: Cylinder,
+                                  disk_number: int,
+                                  does_rotate_up: bool,
+                                  window) -> ButtonData:
     """Generate rotation button data for disk disk_number."""
 
-    button_surface_pos = (
-        ROTATION_BUTTON_DIMENSIONS[0] * (disk_number - 1),
-        MANIPULATION_SURFACE.get_rect().top +
-        (0 if does_rotate_up else ROTATION_BUTTON_DIMENSIONS[1]))
-    button_surface = MANIPULATION_SURFACE.subsurface(
-        button_surface_pos, ROTATION_BUTTON_DIMENSIONS)
+    button_dimensions = (window.get_width() / 10 * 9 / len(cylinder),
+                         (window.get_height() / 10) / 2)
+    button_surface_pos = (button_dimensions[0] * (disk_number - 1),
+                          window.get_height() - button_dimensions[1] *
+                          (2 if does_rotate_up else 1))
+    button_surface = window.subsurface(button_surface_pos, button_dimensions)
+
     return {
         'type': 'rotation',
         'does_rotate_up': does_rotate_up,
         'surface': button_surface,
-        'onclick': partial(rotate_disk_from_cylinder_in_place, CYLINDER,
+        'onclick': partial(rotate_disk_from_cylinder_in_place, cylinder,
                            disk_number, does_rotate_up),
         'clickable': True,
         'drawable': True
@@ -292,12 +254,17 @@ def draw_rotation_button(button_data: ButtonData) -> None:
         button_surface.fill((0, 0, 0, 0))
 
 
-def generate_finish_button_data() -> ButtonData:
+def generate_finish_button_data(cylinder: Cylinder, window) -> ButtonData:
     """Create a dict for later interacting with the finish button."""
+
+    button_dimensions = (window.get_width() / 10, window.get_height() / 10)
+    button_pos = (window.get_width() - button_dimensions[0],
+                  window.get_height() - button_dimensions[1])
+    button_surface = window.subsurface(button_pos, button_dimensions)
 
     return {
         'type': 'finish',
-        'surface': FINISH_BUTTON_SURFACE,
+        'surface': button_surface,
         'onclick': partial(print, 'FINISH'),  # TODO
         'drawable': True,
         'clickable': True
@@ -311,28 +278,36 @@ def draw_finish_button(button_data: ButtonData) -> None:
     if button_data['drawable']:
         button_surface.fill(BUTTON_BG_COLOR)
 
-        text_surface = FONT.render('Finish', True, BUTTON_FG_COLOR)
-        text_pos = text_surface.get_rect(
-            center=(0.5 * button_surface.get_width(),
-                    0.5 * button_surface.get_height()))
-        button_surface.blit(text_surface, text_pos)
+        write_centered_text('Finish', button_surface, font_color=BLACK)
     else:
         button_surface.fill((0, 0, 0, 0))
 
 
-def draw_sidebar_annotation(text: str, column: int) -> None:
+def draw_sidebar_annotation(text: str, column_number: int, window) -> None:
     """Draw an annotated text onto the sidebar at the given column, relative to
     the ones of the disks."""
 
-    annotation_surface = SIDEBAR_SURFACE.subsurface(
-        (0, SIDEBAR_ANNOTATION_DIMENSIONS[1] *
-         column), SIDEBAR_ANNOTATION_DIMENSIONS)
-    text_surface = FONT.render(text, True, WHITE)
-    text_pos = text_surface.get_rect(
-        center=(0.5 * annotation_surface.get_width(),
-                0.5 * annotation_surface.get_height()))
-    text_pos.left = 0  # Align annotation with left border
-    annotation_surface.blit(text_surface, text_pos)
+    annotation_dimensions = (window.get_width() / 10,
+                             (window.get_height() / 10 * 9) / 26)
+    annotation_pos = (window.get_width() - annotation_dimensions[0],
+                      annotation_dimensions[1] * column_number)
+    annotation_surface = window.subsurface(annotation_pos,
+                                           annotation_dimensions)
+    write_left_aligned_text(text, annotation_surface)
+
+
+def write_left_aligned_text(text: str,
+                            parent_surface,
+                            font_size: int=FONT_SIZE,
+                            font_color: Color=FONT_COLOR) -> None:
+    """Write the given text at the left border of the parent surface."""
+
+    font = pygame.font.Font(pygame.font.match_font(FONT_NAME), font_size)
+    text_surface = font.render(text, True, font_color)
+    text_pos = text_surface.get_rect(center=(
+        0.5 * parent_surface.get_width(), 0.5 * parent_surface.get_height()))
+    text_pos.left = 0  # Align text with left border
+    parent_surface.blit(text_surface, text_pos)
 
 
 def flatten(l: List[List[Any]]) -> List[Any]:
