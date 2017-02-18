@@ -4,8 +4,8 @@ from typing import Dict, List
 
 # Type aliases
 Filename = str
-Cylinder = str
-Cylinders = Dict[int, Cylinder]
+Disk = str
+Cylinder = Dict[int, Disk]
 Key = List[int]
 Letter = str
 
@@ -17,41 +17,41 @@ def sanitize_message(message: str) -> str:
         filter(lambda character: character in ascii_letters, message))
 
 
-def generate_cylinder() -> Cylinder:
+def generate_disk() -> Disk:
     """Return all letters of the alphabet uppercase in a random order as a
-    string, i.e. a cylinder.
+    string, i.e. a Jefferson disk.
     """
 
     return ''.join(sample(ascii_uppercase, 26))
 
 
-def write_cylinders_to_file(file: Filename, number_of_cylinders: int) -> None:
-    """Write to file a given number of shuffled alphabets (cylinders), with one
+def write_cylinder_to_file(file: Filename, number_of_disks: int) -> None:
+    """Write to file a given number of shuffled alphabets (disks), with one
     alphabet per line.
     """
 
     with open(file, 'w') as f:
-        for _ in range(number_of_cylinders):
-            f.write(generate_cylinder() + '\n')
+        for _ in range(number_of_disks):
+            f.write(generate_disk() + '\n')
 
 
-def load_cylinders_from_file(file: Filename) -> Cylinders:
+def load_cylinder_from_file(file: Filename) -> Cylinder:
     """Read file line by line and return a dict composed of the content of each
     line as values and their line number as keys.
     """
 
     with open(file, 'r') as f:
-        raw_cylinders = f.read()
+        raw_cylinder = f.read()
         return {
-            i + 1: cylinder
-            for i, cylinder in enumerate(raw_cylinders.split('\n'))
-            if cylinder is not ''  # Exclude last empty line
+            i + 1: disk
+            for i, disk in enumerate(raw_cylinder.split('\n'))
+            if disk is not ''  # Exclude last empty line
         }
 
 
 def is_key_valid(key: Key, n: int) -> bool:
     """Check if key is valid, i.e. key is a permutation of all numbers from 1
-    to the number of cylinders (included) wanted.
+    to the number of disks (included) wanted.
     """
 
     return sorted(key) == list(range(1, n + 1))
@@ -63,13 +63,13 @@ def generate_key(n: int) -> Key:
     return sample(list(range(1, n + 1)), n)
 
 
-def find(letter: Letter, cylinder: Cylinder) -> int:
-    """Return the index of the first occurence of letter in cylinder. It
+def find(letter: Letter, disk: Disk) -> int:
+    """Return the index of the first occurence of letter in disk. It
     returns -1 if there is no occurence of letter.
     """
 
     occurs_at = -1
-    for i, v in enumerate(cylinder):
+    for i, v in enumerate(disk):
         if occurs_at is -1 and v == letter:
             occurs_at = i
             break
@@ -88,20 +88,46 @@ def jefferson_shift(n: int) -> int:
     return shift(n, 6, 26)
 
 
-def cipher_letter(letter: Letter, cylinder: Cylinder) -> Letter:
-    """Encrypt letter using the jefferson disk/cylinder provided."""
+def revert_jefferson_shift(n: int) -> int:
+    """Shift n of 6 modulo 26. Partial application of shift."""
 
-    return cylinder[jefferson_shift(find(letter, cylinder))]
+    return shift(n, -6, 26)
 
 
-def cipher_message(message: str, key: Key, cylinders: Cylinders) -> str:
-    """Encrypt message using the key and the set of cylinders provided with the
-    Jefferson method.
+def cipher_letter(letter: Letter, disk: Disk) -> Letter:
+    """Encrypt letter using the jefferson disk provided."""
+
+    return disk[jefferson_shift(find(letter, disk))]
+
+
+def decipher_letter(letter: Letter, disk: Disk) -> Letter:
+    """Decrypt letter using the jefferson disk provided."""
+
+    return disk[revert_jefferson_shift(find(letter, disk))]
+
+
+def cipher_message(message: str, key: Key, cylinder: Cylinder) -> str:
+    """Encrypt message with the Jefferson method using the key and the set of
+    disks provided.
     """
 
     if is_key_valid(key, len(key)):
         return ''.join([
-            cipher_letter(letter, cylinders[key[index]])
+            cipher_letter(letter, cylinder[key[index]])
+            for index, letter in enumerate(message)
+        ])
+    else:
+        raise Exception("The key provided is not valid.")
+
+
+def decipher_message(message: str, key: Key, cylinder: Cylinder) -> str:
+    """Decrypt message with the Jefferson method using the key and the set of
+    disks provided.
+    """
+
+    if is_key_valid(key, len(key)):
+        return ''.join([
+            decipher_letter(letter, cylinder[key[index]])
             for index, letter in enumerate(message)
         ])
     else:
