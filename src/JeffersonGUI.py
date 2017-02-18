@@ -33,16 +33,17 @@ CYLINDER = None
 CYLINDER_SURFACE = None
 CYLINDER_SURFACE_DIMENSIONS = None
 DISK_SURFACE_DIMENSIONS = None
+FINISH_BUTTON_DATA = None
+FINISH_BUTTON_DIMENSIONS = None
+FINISH_BUTTON_SURFACE = None
 FONT = None
 MANIPULATION_SURFACE = None
 MANIPULATION_SURFACE_DIMENSIONS = None
 ROTATION_BUTTONS_DATA = None
 ROTATION_BUTTON_DIMENSIONS = None
+SIDEBAR_ANNOTATION_DIMENSIONS = None
 SIDEBAR_SURFACE = None
 SIDEBAR_SURFACE_DIMENSIONS = None
-FINISH_BUTTON_DATA = None
-FINISH_BUTTON_DIMENSIONS = None
-FINISH_BUTTON_SURFACE = None
 WINDOW = None
 
 
@@ -64,16 +65,17 @@ def setup() -> None:
     global CYLINDER_SURFACE
     global CYLINDER_SURFACE_DIMENSIONS
     global DISK_SURFACE_DIMENSIONS
+    global FINISH_BUTTON_DATA
+    global FINISH_BUTTON_DIMENSIONS
+    global FINISH_BUTTON_SURFACE
     global FONT
     global MANIPULATION_SURFACE
     global MANIPULATION_SURFACE_DIMENSIONS
     global ROTATION_BUTTONS_DATA
     global ROTATION_BUTTON_DIMENSIONS
+    global SIDEBAR_ANNOTATION_DIMENSIONS
     global SIDEBAR_SURFACE
     global SIDEBAR_SURFACE_DIMENSIONS
-    global FINISH_BUTTON_DATA
-    global FINISH_BUTTON_DIMENSIONS
-    global FINISH_BUTTON_SURFACE
     global WINDOW
 
     pygame.init()
@@ -112,6 +114,8 @@ def setup() -> None:
                                CYLINDER_SURFACE_DIMENSIONS[1])
     ROTATION_BUTTON_DIMENSIONS = (DISK_SURFACE_DIMENSIONS[0],
                                   MANIPULATION_SURFACE_DIMENSIONS[1] / 2)
+    SIDEBAR_ANNOTATION_DIMENSIONS = (SIDEBAR_SURFACE_DIMENSIONS[0],
+                                     SIDEBAR_SURFACE_DIMENSIONS[1] / 26)
 
     ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(len(CYLINDER))
     FINISH_BUTTON_DATA = generate_finish_button_data()
@@ -130,7 +134,8 @@ def draw() -> bool:
     clear_surface(WINDOW)
     draw_cylinder(CYLINDER)
     draw_rotation_buttons(ROTATION_BUTTONS_DATA)
-    SIDEBAR_SURFACE.fill((255, 0, 0))
+    draw_sidebar_annotation("< CLEAR", 9)
+    draw_sidebar_annotation("< CIPHERED", 15)
     draw_finish_button(FINISH_BUTTON_DATA)
     pygame.display.flip()
 
@@ -313,6 +318,21 @@ def draw_finish_button(button_data: ButtonData) -> None:
         button_surface.blit(text_surface, text_pos)
     else:
         button_surface.fill((0, 0, 0, 0))
+
+
+def draw_sidebar_annotation(text: str, column: int) -> None:
+    """Draw an annotated text onto the sidebar at the given column, relative to
+    the ones of the disks."""
+
+    annotation_surface = SIDEBAR_SURFACE.subsurface(
+        (0, SIDEBAR_ANNOTATION_DIMENSIONS[1] *
+         column), SIDEBAR_ANNOTATION_DIMENSIONS)
+    text_surface = FONT.render(text, True, WHITE)
+    text_pos = text_surface.get_rect(
+        center=(0.5 * annotation_surface.get_width(),
+                0.5 * annotation_surface.get_height()))
+    text_pos.left = 0  # Align annotation with left border
+    annotation_surface.blit(text_surface, text_pos)
 
 
 def flatten(l: List[List[Any]]) -> List[Any]:
