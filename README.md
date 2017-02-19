@@ -107,22 +107,56 @@ The following sections contains the answers to the questions which are in the
 [subject](subject.pdf).
 
 ### _Decipher the text_ `GRMYSGBOAAMQGDPEYVWLDFDQQQZXXVMSZFS` _with the cylinder inside the_ [`cylinder-example.txt`](cylinder-example.txt) _file and the key_ `[12, 16, 29, 6, 33, 9, 22, 15, 20, 3, 1, 30, 32, 36, 19, 10, 35, 27, 25, 26, 2, 18, 31, 14, 34, 17, 23, 7, 8, 21, 4, 13, 11, 24, 28, 5]`.
-The message is : "The quick brown fox jump over the lazy dog"
+
+The unencrypted message was : "The quick brown fox jump over the lazy dog".
 
 ### _Encrypt a text of your choice with a cylinder and a key of your choice. Attach them to your project._
-If we encrypt the message "Hello world" with the cylinder in the file "cylinder-question.txt" and the key [8, 4, 6, 7, 2, 1, 10, 5, 3, 9]
-we got : 'XNUEDNRCHN'
+
+If we encrypt the text "Hello world" with the cylinder contained in the file
+[`cylinder-question.txt`](cylinder-question.txt) and the key `[8, 4, 6, 7, 2,
+1, 10, 5, 3, 9]` we end up with this encrypted message : 'XNUEDNRCHN'.
 
 ### _What do you think of the security of this algorithm?_
-This algorithm is not really secure for short message but the longer your message the more secure it is.
-This algorithm was quite secure before computer comming but now it is no more secure enought.
+
+When exchanging a message using this algorithm, you have also the key
+and the disks to give. Communicating a key is common to many encryption
+algorithms, but having another factor to carry, the cylinder, is one more
+failure spot.
+
+The first weak point of any encryption system using a unique key
+is exchanging that key: if you encrypt your message, it is therefore that
+you're afraid of being read by someone else than your peer ; then how can you
+accept to exchange a key if your communication channel is insecure?
+
+Having the cylinder to also exchange is one more handshake to give. It can seen
+as more secure, as if your key leaks the theft cannot decrypt the message in
+any way. But if your cylinder leaks, it is another scenario. The third party
+has a lot more chance of decrypting your message. He has just to try all the
+possible permutations of disks, or `n!` for `n` disks. For short messages, is
+it easy to test all the possible keys. The longer the message the harder it is.
+
+Before computers, messages above 6 characters were starting to be very hard to
+decrypt without the key. 6 characters long messages are already hard to
+decipher by hand, there's 720 possible keys. Now that we have machines with
+heavy computational power we can decrypt way longer messages without having the
+key in a reasonable time.
 
 ### _What are the main qualities and downsides of this algorithm?_
-The qualities are that if you have a message long enought it will be harder de decrypt and this algorithm is quite easy to set up.
-The mains downsides are that with a computer it is we can easily devrypt the message without knowing the key, and it is a system with a unique key so someone could intercept it.
+
+This algorithm requires no mathematic knowledge for the sender and the
+recipient to use it, this must have been quite convenient in the 1800s where
+the average mathematic skills were way lower than the ones someone of our
+century might have.
+
+What's less convenient about this ciphering system is that is it quite
+cumbersome to setup and use. You have to exchange the message, the key and the
+cylinder in order to be able to decrypt the former. That's too much
+information about our message.
 
 ### _How many keys there is in a cylinder of_ `n` _disks?_
-There is n! key possible because it is a permutation without repetition of n disk.
+
+This is a permutation without repetition, therefore there is `n!` possible keys
+for `n` given disks.
 
 ## LICENSE
 
