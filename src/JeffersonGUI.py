@@ -32,6 +32,7 @@ CLOCK = None
 CYLINDER = None
 FINISH_BUTTON_DATA = None
 ROTATION_BUTTONS_DATA = None
+VALIDATE_KEY_BUTTON_DATA = None
 WINDOW = None
 
 
@@ -51,6 +52,7 @@ def setup() -> None:
     global CYLINDER
     global FINISH_BUTTON_DATA
     global ROTATION_BUTTONS_DATA
+    global VALIDATE_KEY_BUTTON_DATA
     global WINDOW
 
     pygame.init()
@@ -63,7 +65,8 @@ def setup() -> None:
     CYLINDER = {i: ascii_uppercase for i in range(1, 11)}
 
     ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(CYLINDER, WINDOW)
-    FINISH_BUTTON_DATA = generate_finish_button_data(CYLINDER, WINDOW)
+    FINISH_BUTTON_DATA = generate_finish_button_data(WINDOW)
+    VALIDATE_KEY_BUTTON_DATA = generate_validate_key_button_data(WINDOW)
 
 
 def draw() -> bool:
@@ -72,6 +75,10 @@ def draw() -> bool:
     False to exit the drawing loop.
     """
 
+    global FINISH_BUTTON_DATA
+    global ROTATION_BUTTONS_DATA
+    global VALIDATE_KEY_BUTTON_DATA
+
     # Redraw UI
     clear_surface(WINDOW)
     draw_cylinder(CYLINDER, WINDOW)
@@ -79,12 +86,22 @@ def draw() -> bool:
     draw_sidebar_annotation("< CLEAR", 9, WINDOW)
     draw_sidebar_annotation("< CIPHERED", 15, WINDOW)
     draw_finish_button(FINISH_BUTTON_DATA)
+    draw_validate_key_button(VALIDATE_KEY_BUTTON_DATA)
     pygame.display.flip()
 
-    # Compute some values for thsi frame
+    # Compute what's drawable and what's not for the next frame
+    can_be_drawn_and_clickable = not VALIDATE_KEY_BUTTON_DATA['clickable']
+    for button in ROTATION_BUTTONS_DATA:
+        button['drawable'] = can_be_drawn_and_clickable
+        button['clickable'] = can_be_drawn_and_clickable
+    FINISH_BUTTON_DATA['drawable'] = can_be_drawn_and_clickable
+    FINISH_BUTTON_DATA['clickable'] = can_be_drawn_and_clickable
+
+    # Compute the UI components we can interact onto for this frame
     clickable_components = [
         component
-        for component in ROTATION_BUTTONS_DATA + [FINISH_BUTTON_DATA]
+        for component in ROTATION_BUTTONS_DATA + [FINISH_BUTTON_DATA,
+                                                  VALIDATE_KEY_BUTTON_DATA]
         if component['clickable']
     ]
 
@@ -250,11 +267,9 @@ def draw_rotation_button(button_data: ButtonData) -> None:
                                if does_rotate_up else (top + (20 * h)))
         ]]
         pygame.draw.aalines(button_surface, BUTTON_FG_COLOR, False, point_list)
-    else:
-        button_surface.fill((0, 0, 0, 0))
 
 
-def generate_finish_button_data(cylinder: Cylinder, window) -> ButtonData:
+def generate_finish_button_data(window) -> ButtonData:
     """Create a dict for later interacting with the finish button."""
 
     button_dimensions = (window.get_width() / 10, window.get_height() / 10)
@@ -277,10 +292,8 @@ def draw_finish_button(button_data: ButtonData) -> None:
     button_surface = button_data['surface']
     if button_data['drawable']:
         button_surface.fill(BUTTON_BG_COLOR)
-
-        write_centered_text('Finish', button_surface, font_color=BLACK)
-    else:
-        button_surface.fill((0, 0, 0, 0))
+        write_centered_text('Finish', button_surface,
+                            font_color=BUTTON_FG_COLOR)
 
 
 def draw_sidebar_annotation(text: str, column_number: int, window) -> None:
@@ -308,6 +321,41 @@ def write_left_aligned_text(text: str,
         0.5 * parent_surface.get_width(), 0.5 * parent_surface.get_height()))
     text_pos.left = 0  # Align text with left border
     parent_surface.blit(text_surface, text_pos)
+
+
+def generate_validate_key_button_data(window) -> ButtonData:
+    """Get the 'Validate key' button data."""
+
+    button_dimensions = (window.get_width() / 10, window.get_height() / 10)
+    button_pos = (window.get_width() - button_dimensions[0],
+                  window.get_height() - button_dimensions[1])
+    button_surface = window.subsurface(button_pos, button_dimensions)
+
+    button_data = {
+        'type': 'validate_key',
+        'surface': button_surface,
+        'onclick': None,
+        'drawable': True,
+        'clickable': True
+    }
+
+    def onclick(button_data: ButtonData) -> None: # TODO: Not complete
+        button_data['clickable'] = False
+        button_data['drawable'] = False
+
+    button_data['onclick'] = partial(onclick, button_data)
+
+    return button_data
+
+
+def draw_validate_key_button(button_data: ButtonData) -> None:
+    """Draw the 'Validate key' button."""
+
+    button_surface = button_data['surface']
+    if button_data['drawable']:
+        button_surface.fill(BUTTON_BG_COLOR)
+        write_centered_text('Validate key', button_surface,
+                            font_color=BUTTON_FG_COLOR)
 
 
 def flatten(l: List[List[Any]]) -> List[Any]:
