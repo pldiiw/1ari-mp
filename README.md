@@ -6,7 +6,7 @@ This repository contains the work done for a SUPINFO school project where
 students were asked to code a cipher system, the [Jefferson Disk], in Python
 and Pygame for the graphical user interface.  
 Being a group project, it involved two persons:
- * DOURNEAU Pierre-Louis ([@pldiiw])
+ * Pierre-Louis DOURNEAU ([@pldiiw])
  * Clément GRIMAUD ([@ehrakis])
 
 ## Installation
