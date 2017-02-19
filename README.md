@@ -36,6 +36,8 @@ It requires mypy. If don't have it, just run:
 ## Project Hierarchy
 
 All source files can be found in the `src/` directory.  
+The GUI has been splitted into components, each in its own file. All components
+can be found under the `src/component/` directory.  
 Tests are under the `test/` directory.
 
 ## Code guidelines
@@ -83,23 +85,23 @@ readable code.
 Here's a corresponding table with on the left the subroutine
 name in the subject and on the right the matching name inside our code:
 
-| Name in the subject | In the actual code                      |
-|--------------------:|:----------------------------------------|
-| convertLetters      | sanitize_message                        |
-| mix                 | generate_disk                           |
-| createCylinder      | write_cylinder_to_file                  |
-| loadCylinder        | load_cylinder_from_file                 |
-| KeyOK               | is_key_valid                            |
-| createKey           | generate_key                            |
-| find                | find                                    |
-| shift               | jefferson_shift                         |
-| cipherLetter        | cipher_letter                           |
-| cipherText          | cipher_message                          |
-| displayCylinder     | draw_disk                               |
-| displayCylinders    | draw_cylinder                           |
-| enterKey            | draw_key_selection_buttons and draw_key |
-| rotateCylinder      | rotate_disk_from_cylinder_in_place      |
-| rotateCylinders     | draw_rotation_buttons                   |
+| Name in the subject | In the actual code      |
+|--------------------:|:------------------------|
+| convertLetters      | sanitize_message        |
+| mix                 | generate_disk           |
+| createCylinder      | write_cylinder_to_file  |
+| loadCylinder        | load_cylinder_from_file |
+| KeyOK               | is_key_valid            |
+| createKey           | generate_key            |
+| find                | find                    |
+| shift               | jefferson_shift         |
+| cipherLetter        | cipher_letter           |
+| cipherText          | cipher_message          |
+| displayCylinder     | draw_disk (see `src/component/draw_cylinder.py`) |
+| displayCylinders    | draw_cylinder (see `src/component/draw_cylinder.py`) |
+| enterKey            | see `src/component/key_selection.py`, `src/component/draw_key.py` and `src/component/enter_key_annotation.py` |
+| rotateCylinder      | see `src/component/rotate_disk.py` |
+| rotateCylinders     | see `src/component/rotation_button.py`, `src/component/sidebar_annotation.py` and `src/component/exit_button.py` |
 
 ## Questions
 
