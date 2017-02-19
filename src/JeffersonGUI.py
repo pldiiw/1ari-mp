@@ -5,6 +5,8 @@ from typing import Any, Callable, Dict, List, Tuple
 import pygame
 from pygame.locals import *
 
+from JeffersonShell import is_key_valid, load_cylinder_from_file
+
 # Type aliases
 Disk = str
 Cylinder = Dict[int, Disk]
@@ -12,6 +14,7 @@ Key = List[int]
 Letter = str
 ButtonData = Dict[str, Any]
 Color = Tuple[int, int, int]
+Filename = str
 
 # Colors
 BLACK = (0, 0, 0)
@@ -33,7 +36,6 @@ CYLINDER = None
 FINISH_BUTTON_DATA = None
 KEY = None
 ROTATION_BUTTONS_DATA = None
-VALIDATE_KEY_BUTTON_DATA = None
 WINDOW = None
 
 
@@ -55,7 +57,6 @@ def setup() -> None:
     global KEY
     global KEY_SELECTION_BUTTONS_DATA
     global ROTATION_BUTTONS_DATA
-    global VALIDATE_KEY_BUTTON_DATA
     global WINDOW
 
     pygame.init()
@@ -65,13 +66,12 @@ def setup() -> None:
 
     CLOCK = pygame.time.Clock()
 
-    CYLINDER = {i: ascii_uppercase for i in range(1, 11)}
+    CYLINDER = load_cylinder_from_file('cylinder.txt')
 
     ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(CYLINDER, WINDOW)
     KEY_SELECTION_BUTTONS_DATA = generate_key_selection_buttons_data(CYLINDER,
                                                                      WINDOW)
-    FINISH_BUTTON_DATA = generate_finish_button_data(WINDOW)
-    VALIDATE_KEY_BUTTON_DATA = generate_validate_key_button_data(WINDOW)
+    FINISH_BUTTON_DATA = generate_finish_button_data(CYLINDER, WINDOW)
 
     KEY = []
 
@@ -86,39 +86,33 @@ def draw() -> bool:
     global KEY
     global KEY_SELECTION_BUTTONS_DATA
     global ROTATION_BUTTONS_DATA
-    global VALIDATE_KEY_BUTTON_DATA
 
-    can_be_drawn_and_clickable = (not VALIDATE_KEY_BUTTON_DATA['clickable'])
+    key_valid = is_key_valid(KEY, len(CYLINDER))
+
     # Redraw UI
     clear_surface(WINDOW)
     draw_cylinder(CYLINDER, WINDOW)
-    draw_rotation_buttons(ROTATION_BUTTONS_DATA)
     draw_sidebar_annotation("< CLEAR", 9, WINDOW)
     draw_sidebar_annotation("< CIPHERED", 15, WINDOW)
-    draw_finish_button(FINISH_BUTTON_DATA)
-    draw_validate_key_button(VALIDATE_KEY_BUTTON_DATA)
-    draw_key_selection_buttons(KEY_SELECTION_BUTTONS_DATA)
-    if not can_be_drawn_and_clickable:
+    if key_valid:
+        draw_rotation_buttons(ROTATION_BUTTONS_DATA)
+        draw_finish_button(FINISH_BUTTON_DATA)
+    else:
+        draw_key_selection_buttons(KEY_SELECTION_BUTTONS_DATA)
         draw_key(CYLINDER, KEY, WINDOW)
+        draw_enter_key_annotation(WINDOW)
     pygame.display.flip()
 
     # Compute what's drawable and what's not for the next frame
     for button in ROTATION_BUTTONS_DATA:
-        button['drawable'] = can_be_drawn_and_clickable
-        button['clickable'] = can_be_drawn_and_clickable
-    if can_be_drawn_and_clickable:
-        for button in KEY_SELECTION_BUTTONS_DATA:
-            button['drawable'] = not can_be_drawn_and_clickable
-            button['clickable'] = not can_be_drawn_and_clickable
-    FINISH_BUTTON_DATA['drawable'] = can_be_drawn_and_clickable
-    FINISH_BUTTON_DATA['clickable'] = can_be_drawn_and_clickable
+        button['clickable'] = key_valid
+    FINISH_BUTTON_DATA['clickable'] = key_valid
 
     # Compute the UI components we can interact onto for this frame
     clickable_components = [
         component
-        for component in ROTATION_BUTTONS_DATA + KEY_SELECTION_BUTTONS_DATA
-        + [FINISH_BUTTON_DATA, VALIDATE_KEY_BUTTON_DATA]
-        if component['clickable']
+        for component in ROTATION_BUTTONS_DATA + KEY_SELECTION_BUTTONS_DATA +
+        [FINISH_BUTTON_DATA] if component['clickable']
     ]
 
     # Handle events
@@ -134,7 +128,8 @@ def draw() -> bool:
                     clickable_component['onclick']()
                     if clickable_component['type'] == 'key_selection':
                         KEY.append(clickable_component['disk_number'])
-                        print(KEY)
+                    elif clickable_component['type'] == 'finish':
+                        return False  # We clicked 'Finish', so exit the program
 
     # Wait the end of the frame
     CLOCK.tick(FPS)
@@ -289,7 +284,7 @@ def draw_rotation_button(button_data: ButtonData) -> None:
         pygame.draw.aalines(button_surface, BUTTON_FG_COLOR, False, point_list)
 
 
-def generate_finish_button_data(window) -> ButtonData:
+def generate_finish_button_data(cylinder: Cylinder, window) -> ButtonData:
     """Create a dict for later interacting with the finish button."""
 
     button_dimensions = (window.get_width() / 10, window.get_height() / 10)
@@ -300,10 +295,28 @@ def generate_finish_button_data(window) -> ButtonData:
     return {
         'type': 'finish',
         'surface': button_surface,
-        'onclick': partial(print, 'FINISH'),  # TODO
+        'onclick':
+        partial(write_message_to_file, cylinder, 'gui-encrypted-message.txt'),
         'drawable': True,
         'clickable': True
     }
+
+
+def write_message_to_file(cylinder: Cylinder, file: Filename):
+    """"""
+
+    encrypted_message = ''.join(retrieve_line_from_cylinder(cylinder, 15))
+    with open(file, 'w') as f:
+        f.write(encrypted_message)
+
+
+def retrieve_line_from_cylinder(cylinder: Cylinder, line: int) -> List[Letter]:
+    """"""
+
+    return [
+        cylinder[disk_number][line]
+        for disk_number in range(1, len(cylinder) + 1)
+    ]
 
 
 def draw_finish_button(button_data: ButtonData) -> None:
@@ -313,7 +326,7 @@ def draw_finish_button(button_data: ButtonData) -> None:
     if button_data['drawable']:
         button_surface.fill(BUTTON_BG_COLOR)
         write_centered_text(
-            'Finish', button_surface, font_color=BUTTON_FG_COLOR)
+            'Finish and exit', button_surface, font_color=BUTTON_FG_COLOR)
 
 
 def draw_sidebar_annotation(text: str, column_number: int, window) -> None:
@@ -343,39 +356,15 @@ def write_left_aligned_text(text: str,
     parent_surface.blit(text_surface, text_pos)
 
 
-def generate_validate_key_button_data(window) -> ButtonData:
-    """Get the 'Validate key' button data."""
+def draw_enter_key_annotation(window) -> None:
+    """Draw the 'Enter key' annotation."""
 
-    button_dimensions = (window.get_width() / 10, window.get_height() / 10)
-    button_pos = (window.get_width() - button_dimensions[0],
-                  window.get_height() - button_dimensions[1])
-    button_surface = window.subsurface(button_pos, button_dimensions)
-
-    button_data = {
-        'type': 'validate_key',
-        'surface': button_surface,
-        'onclick': None,
-        'drawable': True,
-        'clickable': True
-    }
-
-    def onclick(button_data: ButtonData) -> None:  # TODO: Not complete
-        button_data['clickable'] = False
-        button_data['drawable'] = False
-
-    button_data['onclick'] = partial(onclick, button_data)
-
-    return button_data
-
-
-def draw_validate_key_button(button_data: ButtonData) -> None:
-    """Draw the 'Validate key' button."""
-
-    button_surface = button_data['surface']
-    if button_data['drawable']:
-        button_surface.fill(BUTTON_BG_COLOR)
-        write_centered_text(
-            'Validate key', button_surface, font_color=BUTTON_FG_COLOR)
+    annotation_dimensions = (window.get_width() / 10, window.get_height() / 10)
+    annotation_pos = (window.get_width() - annotation_dimensions[0],
+                      window.get_height() - annotation_dimensions[1])
+    annotation_surface = window.subsurface(annotation_pos,
+                                           annotation_dimensions)
+    write_centered_text('Enter key', annotation_surface)
 
 
 def generate_key_selection_buttons_data(cylinder: CYLINDER,
