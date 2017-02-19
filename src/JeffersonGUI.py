@@ -79,7 +79,8 @@ def setup() -> None:
 
     KEY = []
 
-    ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(CYLINDER, WINDOW)
+    ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(
+        CYLINDER, list(range(1, len(CYLINDER) + 1)), WINDOW)
     KEY_SELECTION_BUTTONS_DATA = generate_key_selection_buttons_data(CYLINDER,
                                                                      WINDOW)
     EXIT_BUTTON_DATA = generate_exit_button_data(CYLINDER, KEY, WINDOW)
@@ -97,6 +98,9 @@ def draw() -> bool:
     global ROTATION_BUTTONS_DATA
 
     key_valid = is_key_valid(KEY, len(CYLINDER))
+    ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(
+        CYLINDER, KEY
+        if key_valid else list(range(1, len(CYLINDER) + 1)), WINDOW)
 
     # Redraw UI
     clear_surface(WINDOW)
@@ -190,20 +194,23 @@ def draw_letter(letter: Letter, letter_number: int, disk_surface) -> None:
     write_centered_text(letter, letter_surface)
 
 
-def generate_rotation_buttons_data(cylinder: Cylinder,
+def generate_rotation_buttons_data(cylinder: Cylinder, key: Key,
                                    window) -> List[ButtonData]:
     """Compute all of the information needed to draw the rotation buttons and
     later interact with them.
     """
 
     return flatten([[
-        generate_rotation_button_data(cylinder, disk_number, True, window),
-        generate_rotation_button_data(cylinder, disk_number, False, window)
-    ] for disk_number in range(1, len(cylinder) + 1)])
+        generate_rotation_button_data(cylinder, disk_number, location, True,
+                                      window),
+        generate_rotation_button_data(cylinder, disk_number, location, False,
+                                      window)
+    ] for location, disk_number in enumerate(key)])
 
 
 def generate_rotation_button_data(cylinder: Cylinder,
                                   disk_number: int,
+                                  location: int,
                                   does_rotate_up: bool,
                                   window) -> ButtonData:
     """Generate the button data for <disk_number>th disk. The button data
@@ -214,7 +221,7 @@ def generate_rotation_button_data(cylinder: Cylinder,
 
     button_dimensions = (window.get_width() / 10 * 9 / len(cylinder),
                          window.get_height() / 10 / 2)
-    button_surface_pos = (button_dimensions[0] * (disk_number - 1),
+    button_surface_pos = (button_dimensions[0] * location,
                           window.get_height() - button_dimensions[1] *
                           (2 if does_rotate_up else 1))
     button_surface = window.subsurface(button_surface_pos, button_dimensions)
@@ -296,7 +303,7 @@ def write_ciphered_line_to_file(cylinder: Cylinder, key: Key, file: Filename):
     precise line of letters into a file with the given filename.
     """
 
-    encrypted_message = ''.join(retrieve_line_from_cylinder(cylinder, 15))
+    encrypted_message = ''.join(retrieve_line_from_cylinder(cylinder, key, 15))
     with open(file, 'w') as f:
         f.write(encrypted_message)
 
