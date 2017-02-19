@@ -77,12 +77,12 @@ def setup() -> None:
 
     CYLINDER = load_cylinder_from_file('cylinder.txt')
 
+    KEY = []
+
     ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(CYLINDER, WINDOW)
     KEY_SELECTION_BUTTONS_DATA = generate_key_selection_buttons_data(CYLINDER,
                                                                      WINDOW)
-    EXIT_BUTTON_DATA = generate_exit_button_data(CYLINDER, WINDOW)
-
-    KEY = []
+    EXIT_BUTTON_DATA = generate_exit_button_data(CYLINDER, KEY, WINDOW)
 
 
 def draw() -> bool:
@@ -100,7 +100,8 @@ def draw() -> bool:
 
     # Redraw UI
     clear_surface(WINDOW)
-    draw_cylinder(CYLINDER, WINDOW)
+    draw_cylinder(CYLINDER, KEY
+                  if key_valid else list(range(1, len(CYLINDER) + 1)), WINDOW)
     draw_sidebar_annotation("< CLEAR", 9, WINDOW)
     draw_sidebar_annotation("< CIPHERED", 15, WINDOW)
     if key_valid:
@@ -145,9 +146,10 @@ def draw() -> bool:
     return True
 
 
-def draw_cylinder(cylinder: Cylinder, window) -> None:
+def draw_cylinder(cylinder: Cylinder, key: Key, window) -> None:
     """Given a cylinder, it will draw every disks the cylinder contains onto
-    the surface where the cylinder is ought to be drawn (cylinder_surface).
+    the surface where the cylinder is ought to be drawn (cylinder_surface) in
+    the order given by our secret key.
     """
 
     cylinder_dimensions = (window.get_width() / 10 * 9,
@@ -155,18 +157,21 @@ def draw_cylinder(cylinder: Cylinder, window) -> None:
     cylinder_pos = (0, 0)
     cylinder_surface = window.subsurface(cylinder_pos, cylinder_dimensions)
 
-    for disk_number in cylinder:
-        draw_disk(cylinder, disk_number, cylinder_surface)
+    for location, disk_number in enumerate(key):
+        draw_disk(cylinder, disk_number, location, cylinder_surface)
 
 
-def draw_disk(cylinder: Cylinder, disk_number: int, cylinder_surface) -> None:
-    """Given a disk, its position on the cylinder and a surface to draw on,
-    this subroutine will draw that disk at the appropriate location.
+def draw_disk(cylinder: Cylinder,
+              disk_number: int,
+              location: int,
+              cylinder_surface) -> None:
+    """Draw a disk at the given location where it should be drawn onto the
+    cylinder_surface.
     """
 
     disk_dimensions = (cylinder_surface.get_width() / len(cylinder),
                        cylinder_surface.get_height())
-    disk_pos = (disk_dimensions[0] * (disk_number - 1), 0)
+    disk_pos = (disk_dimensions[0] * location, 0)
     disk_rect = pygame.Rect(disk_pos, disk_dimensions)
     disk_surface = cylinder_surface.subsurface(disk_rect)
 
@@ -265,7 +270,8 @@ def draw_rotation_button(button_data: ButtonData) -> None:
         pygame.draw.aalines(button_surface, BUTTON_FG_COLOR, False, point_list)
 
 
-def generate_exit_button_data(cylinder: Cylinder, window) -> ButtonData:
+def generate_exit_button_data(cylinder: Cylinder, key: Key,
+                              window) -> ButtonData:
     """Compute the exit button data for later interacting with it. See
     generate_rotation_button_data() for more insight on what button data is.
     """
@@ -278,14 +284,14 @@ def generate_exit_button_data(cylinder: Cylinder, window) -> ButtonData:
     return {
         'type': 'finish',
         'surface': button_surface,
-        'onclick': partial(write_ciphered_line_to_file, cylinder,
+        'onclick': partial(write_ciphered_line_to_file, cylinder, key,
                            'encrypted-message.txt'),
         'drawable': True,
         'clickable': True
     }
 
 
-def write_ciphered_line_to_file(cylinder: Cylinder, file: Filename):
+def write_ciphered_line_to_file(cylinder: Cylinder, key: Key, file: Filename):
     """Onto the GUI we can see '< CIPHERED' line. This fonction write this
     precise line of letters into a file with the given filename.
     """
@@ -295,17 +301,13 @@ def write_ciphered_line_to_file(cylinder: Cylinder, file: Filename):
         f.write(encrypted_message)
 
 
-def retrieve_line_from_cylinder(cylinder: Cylinder, line: int) -> List[Letter]:
-    """Return all the <line>th letter of each disk in the cylinder."""
+def retrieve_line_from_cylinder(cylinder: Cylinder, key: Key,
+                                line: int) -> List[Letter]:
+    """Return all the <line>th letter of each disk in the cylinder in the order
+    given by our secret key.
+    """
 
-    return [
-        cylinder[disk_number][line]
-        for disk_number in range(1, len(cylinder) + 1)  # We use a range to be
-        # sure that the letters
-        # are retrieved in the
-        # right order
-        # TODO: Use key
-    ]
+    return [cylinder[disk_number][line] for disk_number in key]
 
 
 def draw_exit_button(button_data: ButtonData) -> None:
