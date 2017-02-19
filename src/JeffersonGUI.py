@@ -31,6 +31,7 @@ BUTTON_BG_COLOR = WHITE
 CLOCK = None
 CYLINDER = None
 FINISH_BUTTON_DATA = None
+KEY = None
 ROTATION_BUTTONS_DATA = None
 VALIDATE_KEY_BUTTON_DATA = None
 WINDOW = None
@@ -51,6 +52,8 @@ def setup() -> None:
     global CLOCK
     global CYLINDER
     global FINISH_BUTTON_DATA
+    global KEY
+    global KEY_SELECTION_BUTTONS_DATA
     global ROTATION_BUTTONS_DATA
     global VALIDATE_KEY_BUTTON_DATA
     global WINDOW
@@ -65,8 +68,12 @@ def setup() -> None:
     CYLINDER = {i: ascii_uppercase for i in range(1, 11)}
 
     ROTATION_BUTTONS_DATA = generate_rotation_buttons_data(CYLINDER, WINDOW)
+    KEY_SELECTION_BUTTONS_DATA = generate_key_selection_buttons_data(CYLINDER,
+                                                                     WINDOW)
     FINISH_BUTTON_DATA = generate_finish_button_data(WINDOW)
     VALIDATE_KEY_BUTTON_DATA = generate_validate_key_button_data(WINDOW)
+
+    KEY = []
 
 
 def draw() -> bool:
@@ -76,9 +83,12 @@ def draw() -> bool:
     """
 
     global FINISH_BUTTON_DATA
+    global KEY
+    global KEY_SELECTION_BUTTONS_DATA
     global ROTATION_BUTTONS_DATA
     global VALIDATE_KEY_BUTTON_DATA
 
+    can_be_drawn_and_clickable = (not VALIDATE_KEY_BUTTON_DATA['clickable'])
     # Redraw UI
     clear_surface(WINDOW)
     draw_cylinder(CYLINDER, WINDOW)
@@ -87,21 +97,27 @@ def draw() -> bool:
     draw_sidebar_annotation("< CIPHERED", 15, WINDOW)
     draw_finish_button(FINISH_BUTTON_DATA)
     draw_validate_key_button(VALIDATE_KEY_BUTTON_DATA)
+    draw_key_selection_buttons(KEY_SELECTION_BUTTONS_DATA)
+    if not can_be_drawn_and_clickable:
+        draw_key(CYLINDER, KEY, WINDOW)
     pygame.display.flip()
 
     # Compute what's drawable and what's not for the next frame
-    can_be_drawn_and_clickable = not VALIDATE_KEY_BUTTON_DATA['clickable']
     for button in ROTATION_BUTTONS_DATA:
         button['drawable'] = can_be_drawn_and_clickable
         button['clickable'] = can_be_drawn_and_clickable
+    if can_be_drawn_and_clickable:
+        for button in KEY_SELECTION_BUTTONS_DATA:
+            button['drawable'] = not can_be_drawn_and_clickable
+            button['clickable'] = not can_be_drawn_and_clickable
     FINISH_BUTTON_DATA['drawable'] = can_be_drawn_and_clickable
     FINISH_BUTTON_DATA['clickable'] = can_be_drawn_and_clickable
 
     # Compute the UI components we can interact onto for this frame
     clickable_components = [
         component
-        for component in ROTATION_BUTTONS_DATA + [FINISH_BUTTON_DATA,
-                                                  VALIDATE_KEY_BUTTON_DATA]
+        for component in ROTATION_BUTTONS_DATA + KEY_SELECTION_BUTTONS_DATA
+        + [FINISH_BUTTON_DATA, VALIDATE_KEY_BUTTON_DATA]
         if component['clickable']
     ]
 
@@ -116,6 +132,9 @@ def draw() -> bool:
                     clickable_component['surface'].get_size())
                 if (abs_component_rect.collidepoint(event.pos)):
                     clickable_component['onclick']()
+                    if clickable_component['type'] == 'key_selection':
+                        KEY.append(clickable_component['disk_number'])
+                        print(KEY)
 
     # Wait the end of the frame
     CLOCK.tick(FPS)
@@ -146,6 +165,7 @@ def draw_disk(cylinder: Cylinder, disk_number: int, cylinder_surface) -> None:
     disk_pos = (disk_dimensions[0] * (disk_number - 1), 0)
     disk_rect = pygame.Rect(disk_pos, disk_dimensions)
     disk_surface = cylinder_surface.subsurface(disk_rect)
+
     for letter_number, letter in enumerate(cylinder[disk_number]):
         draw_letter(letter, letter_number, disk_surface)
 
@@ -215,7 +235,7 @@ def generate_rotation_button_data(cylinder: Cylinder,
     """Generate rotation button data for disk disk_number."""
 
     button_dimensions = (window.get_width() / 10 * 9 / len(cylinder),
-                         (window.get_height() / 10) / 2)
+                         window.get_height() / 10 / 2)
     button_surface_pos = (button_dimensions[0] * (disk_number - 1),
                           window.get_height() - button_dimensions[1] *
                           (2 if does_rotate_up else 1))
@@ -292,8 +312,8 @@ def draw_finish_button(button_data: ButtonData) -> None:
     button_surface = button_data['surface']
     if button_data['drawable']:
         button_surface.fill(BUTTON_BG_COLOR)
-        write_centered_text('Finish', button_surface,
-                            font_color=BUTTON_FG_COLOR)
+        write_centered_text(
+            'Finish', button_surface, font_color=BUTTON_FG_COLOR)
 
 
 def draw_sidebar_annotation(text: str, column_number: int, window) -> None:
@@ -339,7 +359,7 @@ def generate_validate_key_button_data(window) -> ButtonData:
         'clickable': True
     }
 
-    def onclick(button_data: ButtonData) -> None: # TODO: Not complete
+    def onclick(button_data: ButtonData) -> None:  # TODO: Not complete
         button_data['clickable'] = False
         button_data['drawable'] = False
 
@@ -354,8 +374,80 @@ def draw_validate_key_button(button_data: ButtonData) -> None:
     button_surface = button_data['surface']
     if button_data['drawable']:
         button_surface.fill(BUTTON_BG_COLOR)
-        write_centered_text('Validate key', button_surface,
-                            font_color=BUTTON_FG_COLOR)
+        write_centered_text(
+            'Validate key', button_surface, font_color=BUTTON_FG_COLOR)
+
+
+def generate_key_selection_buttons_data(cylinder: CYLINDER,
+                                        window) -> List[ButtonData]:
+    """Compute the button data for every key selection buttons."""
+
+    return [
+        generate_key_selection_button_data(cylinder, disk_number, window)
+        for disk_number in range(1, len(cylinder) + 1)
+    ]
+
+
+def generate_key_selection_button_data(cylinder: Cylinder,
+                                       disk_number: int,
+                                       window) -> ButtonData:
+    """"""
+
+    button_dimensions = (window.get_width() / 10 * 9 / len(cylinder),
+                         window.get_height() / 10 / 2)
+    button_pos = (button_dimensions[0] * (disk_number - 1),
+                  window.get_height() - button_dimensions[1] * 2)
+    button_surface = window.subsurface(button_pos, button_dimensions)
+
+    button_data = {
+        'type': 'key_selection',
+        'disk_number': disk_number,
+        'surface': button_surface,
+        'onclick': None,
+        'clickable': True,
+        'drawable': True
+    }
+
+    def onclick(button_data: ButtonData):
+        button_data['clickable'] = False
+        button_data['drawable'] = False
+
+    button_data['onclick'] = partial(onclick, button_data)
+
+    return button_data
+
+
+def draw_key_selection_buttons(buttons_data: List[ButtonData]) -> None:
+    """"""
+
+    for button_data in buttons_data:
+        draw_key_selection_button(button_data)
+
+
+def draw_key_selection_button(button_data: ButtonData) -> None:
+    """"""
+
+    button_surface = button_data['surface']
+    if button_data['drawable']:
+        button_surface.fill(BUTTON_BG_COLOR)
+        write_centered_text(
+            str(button_data['disk_number']),
+            button_surface,
+            font_color=BUTTON_FG_COLOR)
+
+
+def draw_key(cylinder: Cylinder, key: Key, window):
+    """"""
+
+    for index, key_element in enumerate(key):
+        element_dimensions = (window.get_width() / 10 * 9 / len(cylinder),
+                              window.get_height() / 10 / 2)
+        element_pos = (element_dimensions[0] * index,
+                       window.get_height() - element_dimensions[1])
+        element_surface = window.subsurface(element_pos, element_dimensions)
+        element_surface.fill(WHITE)
+        write_centered_text(
+            str(key_element), element_surface, font_color=BLACK)
 
 
 def flatten(l: List[List[Any]]) -> List[Any]:
