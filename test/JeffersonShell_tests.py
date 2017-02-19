@@ -12,15 +12,15 @@ from JeffersonShell import (cipher_letter, cipher_message, decipher_message,
 class JeffersonShellTests(unittest.TestCase):
     def test_sanitize_message(self):
         one = "Welcome"
-        one_should = "Welcome"
+        one_should = "WELCOME"
         self.assertEqual(sanitize_message(one), one_should)
 
         two = "Welcome to my House"
-        two_should = "WelcometomyHouse"
+        two_should = "WELCOMETOMYHOUSE"
         self.assertEqual(sanitize_message(two), two_should)
 
         three = "Weé_l-ç^(c)'ôom ?!!:§$ e."
-        three_should = "Welcome"
+        three_should = "WELCOME"
         self.assertEqual(sanitize_message(three), three_should)
 
     def test_generate_disk(self):
@@ -118,7 +118,7 @@ class JeffersonShellTests(unittest.TestCase):
         self.assertEqual(two, two_should)
 
     def test_cipher_message(self):
-        message_one = "ENJOY"
+        message_one = "en ?J oy"
         cylinder_one = {
             1: "FEWPQLHBDSMCNAXIJTKUOZYVRG",
             2: "UGWAEIXHTOVRKSQBNJPCYFMDLZ",

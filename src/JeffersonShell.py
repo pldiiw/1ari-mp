@@ -14,7 +14,7 @@ def sanitize_message(message: str) -> str:
     """Given a message, will discard all characters not being alphabetic."""
 
     return ''.join(
-        filter(lambda character: character in ascii_letters, message))
+        filter(lambda character: character in ascii_letters, message)).upper()
 
 
 def generate_disk() -> Disk:
@@ -88,22 +88,10 @@ def jefferson_shift(n: int) -> int:
     return shift(n, 6, 26)
 
 
-def revert_jefferson_shift(n: int) -> int:
-    """Shift n of 6 modulo 26. Partial application of shift."""
-
-    return shift(n, -6, 26)
-
-
 def cipher_letter(letter: Letter, disk: Disk) -> Letter:
     """Encrypt letter using the jefferson disk provided."""
 
     return disk[jefferson_shift(find(letter, disk))]
-
-
-def decipher_letter(letter: Letter, disk: Disk) -> Letter:
-    """Decrypt letter using the jefferson disk provided."""
-
-    return disk[revert_jefferson_shift(find(letter, disk))]
 
 
 def cipher_message(message: str, key: Key, cylinder: Cylinder) -> str:
@@ -114,10 +102,22 @@ def cipher_message(message: str, key: Key, cylinder: Cylinder) -> str:
     if is_key_valid(key, len(key)):
         return ''.join([
             cipher_letter(letter, cylinder[key[index]])
-            for index, letter in enumerate(message)
+            for index, letter in enumerate(sanitize_message(message))
         ])
     else:
         raise Exception("The key provided is not valid.")
+
+
+def revert_jefferson_shift(n: int) -> int:
+    """Shift n of 6 modulo 26. Partial application of shift."""
+
+    return shift(n, -6, 26)
+
+
+def decipher_letter(letter: Letter, disk: Disk) -> Letter:
+    """Decrypt letter using the jefferson disk provided."""
+
+    return disk[revert_jefferson_shift(find(letter, disk))]
 
 
 def decipher_message(message: str, key: Key, cylinder: Cylinder) -> str:
