@@ -83,23 +83,23 @@ readable code.
 Here's a corresponding table with on the left the subroutine
 name in the subject and on the right the matching name inside our code:
 
-| Name in the subject | In the actual code                 |
-|--------------------:|:-----------------------------------|
-| convertLetters      | sanitize_message                   |
-| mix                 | generate_disk                      |
-| createCylinder      | write_cylinder_to_file             |
-| loadCylinder        | load_cylinder_from_file            |
-| KeyOK               | is_key_valid                       |
-| createKey           | generate_key                       |
-| find                | find                               |
-| shift               | jefferson_shift                    |
-| cipherLetter        | cipher_letter                      |
-| cipherText          | cipher_message                     |
-| displayCylinder     | draw_disk                          |
-| displayCylinders    | draw_cylinder                      |
-| enterKey            |                                    |
-| rotateCylinder      | rotate_disk_from_cylinder_in_place |
-| rotateCylinders     | draw_rotation_buttons              |
+| Name in the subject | In the actual code                      |
+|--------------------:|:----------------------------------------|
+| convertLetters      | sanitize_message                        |
+| mix                 | generate_disk                           |
+| createCylinder      | write_cylinder_to_file                  |
+| loadCylinder        | load_cylinder_from_file                 |
+| KeyOK               | is_key_valid                            |
+| createKey           | generate_key                            |
+| find                | find                                    |
+| shift               | jefferson_shift                         |
+| cipherLetter        | cipher_letter                           |
+| cipherText          | cipher_message                          |
+| displayCylinder     | draw_disk                               |
+| displayCylinders    | draw_cylinder                           |
+| enterKey            | draw_key_selection_buttons and draw_key |
+| rotateCylinder      | rotate_disk_from_cylinder_in_place      |
+| rotateCylinders     | draw_rotation_buttons                   |
 
 ## Questions
 
