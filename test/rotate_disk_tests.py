@@ -1,10 +1,10 @@
 import unittest
 
-from JeffersonGUI import (rotate_disk, rotate_disk_from_cylinder_in_place,
-                          shift_list)
+from component.rotate_disk import (
+    rotate_disk, rotate_disk_from_cylinder_in_place, shift_list)
 
 
-class JeffersonGUITests(unittest.TestCase):
+class RotateDiskTests(unittest.TestCase):
     def test_shift_list(self):
         list_one = [1, 3, 10, 6, 2, 7, "abc", "def", 9, 8, "ghi"]
         one = shift_list(list_one, 5)
