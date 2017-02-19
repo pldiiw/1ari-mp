@@ -107,14 +107,22 @@ The following sections contains the answers to the questions which are in the
 [subject](subject.pdf).
 
 ### _Decipher the text_ `GRMYSGBOAAMQGDPEYVWLDFDQQQZXXVMSZFS` _with the cylinder inside the_ [`cylinder-example.txt`](cylinder-example.txt) _file and the key_ `[12, 16, 29, 6, 33, 9, 22, 15, 20, 3, 1, 30, 32, 36, 19, 10, 35, 27, 25, 26, 2, 18, 31, 14, 34, 17, 23, 7, 8, 21, 4, 13, 11, 24, 28, 5]`.
+The message is : "The quick brown fox jump over the lazy dog"
 
 ### _Encrypt a text of your choice with a cylinder and a key of your choice. Attach them to your project._
+If we encrypt the message "Hello world" with the cylinder in the file "cylinder-question.txt" and the key [8, 4, 6, 7, 2, 1, 10, 5, 3, 9]
+we got : 'XNUEDNRCHN'
 
 ### _What do you think of the security of this algorithm?_
+This algorithm is not really secure for short message but the longer your message the more secure it is.
+This algorithm was quite secure before computer comming but now it is no more secure enought.
 
 ### _What are the main qualities and downsides of this algorithm?_
+The qualities are that if you have a message long enought it will be harder de decrypt and this algorithm is quite easy to set up.
+The mains downsides are that with a computer it is we can easily devrypt the message without knowing the key, and it is a system with a unique key so someone could intercept it.
 
 ### _How many keys there is in a cylinder of_ `n` _disks?_
+There is n! key possible because it is a permutation without repetition of n disk.
 
 ## LICENSE
 
